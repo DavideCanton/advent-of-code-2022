@@ -6,7 +6,12 @@
 
 Advent of code 2022 (which can be found [here](https://adventofcode.com/2022)) implemented in Python 3.
 
+BE CAREFUL: the tests folder contains the values of the solutions for each day, so don't look in there
+to avoid spoilers!
+
 ## Usage
+
+First, install the requirements by running `pip install -r requirements.txt`.
 
 ```
 $ python runner.py <day> <var>
@@ -15,3 +20,7 @@ $ python runner.py <day> <var>
 where:
 - `day` is the day of the advent to run
 - `var` is the variant of the problem to run (defaults to 1, typically there are just 2).
+
+## Test run
+
+Tests can be run by using `pytest`.
