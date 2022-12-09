@@ -4,7 +4,9 @@ from tests.advent.conftest import Base
 
 
 class TestDay1(Base):
-    @pytest.fixture(params=list(enumerate((68775, 202585))))
-    def data(self, request):
-        index, res = request.param
-        return (1, index + 1, res)
+    DAY = 1
+    DATA = (68775, 202585)
+
+    @pytest.fixture(params=range(len(DATA)))
+    def test_cases(self, request):
+        return self._create_case(request)
