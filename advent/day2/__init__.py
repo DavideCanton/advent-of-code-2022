@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from common import SameComputationAdventDay, load_asset
+from advent.common import SameComputationAdventDay, load_asset
 
 P = "RPS"
 OPPONENT = dict(zip("ABC", P))

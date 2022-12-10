@@ -1,7 +1,7 @@
 import itertools as it
 from functools import cache, reduce
 
-from common import BaseAdventDay, load_asset
+from advent.common import BaseAdventDay, load_asset
 
 cached_ord = cache(ord)
 

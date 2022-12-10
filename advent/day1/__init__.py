@@ -1,4 +1,4 @@
-from common import BaseAdventDay, load_asset
+from advent.common import BaseAdventDay, load_asset
 
 
 class Day1(BaseAdventDay):
