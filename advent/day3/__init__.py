@@ -1,6 +1,7 @@
 import itertools as it
 from dataclasses import dataclass
 from functools import cache, reduce
+from typing import TextIO
 
 from advent.common import BaseAdventDay
 
@@ -20,8 +21,8 @@ class Day3(BaseAdventDay):
         else:
             raise ValueError(f"Invalid letter {letter}")
 
-    def get_input(self) -> list[str]:
-        return [row.strip() for row in self.load_input()]
+    def parse_input(self, input: TextIO) -> list[str]:
+        return [row.strip() for row in input]
 
     def run_1(self, rows: list[str]) -> int:
         def process_row(row):

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import TextIO
 
 from advent.common import BaseAdventDay
 
@@ -7,10 +8,9 @@ from advent.common import BaseAdventDay
 class Day1(BaseAdventDay):
     day = 1
 
-    def get_input(self) -> list[int]:
-        data = self.load_input()
+    def parse_input(self, input: TextIO) -> list[int]:
         calories = [0]
-        for line in data:
+        for line in input:
             line = line.strip()
             if line:
                 calories[-1] += int(line)

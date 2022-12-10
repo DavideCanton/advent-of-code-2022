@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass
+from typing import TextIO
 
 from advent.common import SameComputationAdventDay
 
@@ -11,7 +12,7 @@ R = tuple[int, int]
 class Day4(SameComputationAdventDay):
     day = 4
 
-    def get_input(self) -> list[tuple[R, R]]:
+    def parse_input(self, input: TextIO) -> list[tuple[R, R]]:
         def process(row: str):
             try:
                 d1, d2, d3, d4 = map(int, REGEX.match(row).groups())
@@ -19,7 +20,6 @@ class Day4(SameComputationAdventDay):
             except AttributeError:
                 raise ValueError(f"Invalid row: {row}")
 
-        input = self.load_input()
         return [process(row.strip()) for row in input]
 
     def compute(self, var: int, rows: list[tuple[R, R]]) -> int:

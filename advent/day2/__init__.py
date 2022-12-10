@@ -1,7 +1,6 @@
 from abc import ABCMeta, abstractmethod
-from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, TextIO
 
 from advent.common import SameComputationAdventDay
 
@@ -59,10 +58,10 @@ class Result2(Base):
 class Day2(SameComputationAdventDay):
     day = 2
 
-    def get_input(self) -> Iterable[list[str]]:
-        return (r.strip().split() for r in self.load_input())
+    def parse_input(self, input: TextIO) -> list[list[str]]:
+        return [r.strip().split() for r in input]
 
-    def compute(self, variant: int, rows: Iterable[list[str]]) -> int:
+    def compute(self, variant: int, rows: list[list[str]]) -> int:
         if variant == 1:
             fn = Result1()
         else:

@@ -25,11 +25,9 @@ class Input:
 class Day5(SameComputationAdventDay):
     day = 5
 
-    def get_input(self) -> Input:
-        f = self.load_input()
-
-        crates = self._load_crates(f)
-        moves = self._load_moves(f)
+    def parse_input(self, input: TextIO) -> Input:
+        crates = self._load_crates(input)
+        moves = self._load_moves(input)
 
         return Input(crates, moves)
 
@@ -54,10 +52,10 @@ class Day5(SameComputationAdventDay):
         state[move.to].extend(state[move.from_][-move.target :])
         state[move.from_] = state[move.from_][: -move.target]
 
-    def _load_crates(self, f: TextIO) -> State:
+    def _load_crates(self, input: TextIO) -> State:
         buffer: list[str] = []
 
-        for row in f:
+        for row in input:
             row = row.strip("\n")
             if not row:
                 break
@@ -75,10 +73,10 @@ class Day5(SameComputationAdventDay):
 
         return crates
 
-    def _load_moves(self, f: TextIO) -> list[Move]:
+    def _load_moves(self, input: TextIO) -> list[Move]:
         regex = re.compile(r"^move (\d+) from (\w+) to (\w+)$")
         moves = []
-        for row in f:
+        for row in input:
             target, from_, to = regex.match(row.strip()).groups()
             moves.append(Move(int(target), from_, to))
         return moves

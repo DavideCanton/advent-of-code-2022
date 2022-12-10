@@ -14,11 +14,12 @@ class BaseAdventDay(metaclass=ABCMeta):
         return asset.open()
 
     @abstractmethod
-    def get_input(self):
+    def parse_input(self, input: TextIO):
         pass
 
     def run(self, variant):
-        input = self.get_input()
+        with self.load_input() as input:
+            input = self.parse_input(input)
         method = getattr(self, f"run_{variant}")
         return method(input)
 
@@ -30,5 +31,6 @@ class SameComputationAdventDay(BaseAdventDay, metaclass=ABCMeta):
         pass
 
     def run(self, variant):
-        input = self.get_input()
+        with self.load_input() as input:
+            input = self.parse_input(input)
         return self.compute(variant, input)
