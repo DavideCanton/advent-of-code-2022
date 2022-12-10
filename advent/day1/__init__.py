@@ -1,9 +1,9 @@
-from advent.common import BaseAdventDay, load_asset
+from advent.common import BaseAdventDay
 
 
 class Day1(BaseAdventDay):
     def get_input(self, var) -> list[int]:
-        data = load_asset(__file__, "calories.txt")
+        data = self.load_asset("calories.txt")
         calories = [0]
         for line in data:
             line = line.strip()

@@ -1,14 +1,15 @@
+import sys
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
 from typing import TextIO
 
 
-def load_asset(module, name) -> TextIO:
-    asset: Path = Path(module).parent / "data" / name
-    return asset.open()
-
-
 class BaseAdventDay(metaclass=ABCMeta):
+    def load_asset(self, name) -> TextIO:
+        module = sys.modules[self.__module__]
+        asset: Path = Path(module.__file__).parent / "data" / name
+        return asset.open()
+
     @abstractmethod
     def get_input(self, variant) -> tuple:
         pass

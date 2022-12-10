@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from advent.common import SameComputationAdventDay, load_asset
+from advent.common import SameComputationAdventDay
 
 P = "RPS"
 OPPONENT = dict(zip("ABC", P))
@@ -50,7 +50,7 @@ class Result2(Base):
 
 class Day2(SameComputationAdventDay):
     def get_input(self, variant) -> tuple:
-        return (load_asset(__file__, "strategy.txt"),)
+        return (self.load_asset("strategy.txt"),)
 
     def compute(self, variant, rows):
         if variant == 1:

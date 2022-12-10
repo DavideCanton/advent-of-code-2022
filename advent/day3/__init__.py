@@ -1,7 +1,7 @@
 import itertools as it
 from functools import cache, reduce
 
-from advent.common import BaseAdventDay, load_asset
+from advent.common import BaseAdventDay
 
 cached_ord = cache(ord)
 
@@ -17,7 +17,7 @@ class Day3(BaseAdventDay):
             raise ValueError(f"Invalid letter {letter}")
 
     def get_input(self, variant) -> tuple:
-        return ([row.strip() for row in load_asset(__file__, "input.txt")],)
+        return ([row.strip() for row in self.load_asset("input.txt")],)
 
     def run_1(self, rows):
         def process_row(row):
