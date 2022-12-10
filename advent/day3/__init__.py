@@ -1,4 +1,5 @@
 import itertools as it
+from dataclasses import dataclass
 from functools import cache, reduce
 
 from advent.common import BaseAdventDay
@@ -6,8 +7,11 @@ from advent.common import BaseAdventDay
 cached_ord = cache(ord)
 
 
+@dataclass
 class Day3(BaseAdventDay):
-    def get_score(self, letter):
+    day = 3
+
+    def get_score(self, letter) -> int:
         o = ord(letter)
         if cached_ord("a") <= o <= cached_ord("z"):
             return o - cached_ord("a") + 1
@@ -16,10 +20,10 @@ class Day3(BaseAdventDay):
         else:
             raise ValueError(f"Invalid letter {letter}")
 
-    def get_input(self, variant) -> tuple:
-        return ([row.strip() for row in self.load_asset("input.txt")],)
+    def get_input(self) -> list[str]:
+        return [row.strip() for row in self.load_input()]
 
-    def run_1(self, rows):
+    def run_1(self, rows: list[str]) -> int:
         def process_row(row):
             half = len(row) // 2
             left, right = row[:half], row[half:]
@@ -27,7 +31,7 @@ class Day3(BaseAdventDay):
 
         return sum(max(self.get_score(c) for c in process_row(r)) for r in rows)
 
-    def run_2(self, rows):
+    def run_2(self, rows: list[str]) -> int:
         tot = 0
         for i in it.count():
             start = 3 * i
@@ -41,4 +45,4 @@ class Day3(BaseAdventDay):
         return tot
 
 
-Instance = Day3()
+ProblemClass = Day3

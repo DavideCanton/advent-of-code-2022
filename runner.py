@@ -1,5 +1,6 @@
 import argparse
 import importlib
+from pathlib import Path
 
 
 def create_parser():
@@ -31,7 +32,8 @@ def main():
     except ImportError:
         print("Module not yet implemented!")
     else:
-        res = module.Instance.run(args.var)
+        input_folder = Path(__file__).parent / "inputs"
+        res = module.ProblemClass(input_folder).run(args.var)
         print(f"Result for day {args.day}, variant {args.var}, is {res}.")
 
 

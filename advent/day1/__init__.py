@@ -1,9 +1,14 @@
+from dataclasses import dataclass
+
 from advent.common import BaseAdventDay
 
 
+@dataclass
 class Day1(BaseAdventDay):
-    def get_input(self, var) -> list[int]:
-        data = self.load_asset("calories.txt")
+    day = 1
+
+    def get_input(self) -> list[int]:
+        data = self.load_input()
         calories = [0]
         for line in data:
             line = line.strip()
@@ -11,7 +16,7 @@ class Day1(BaseAdventDay):
                 calories[-1] += int(line)
             else:
                 calories.append(0)
-        return (calories,)
+        return calories
 
     def run_1(self, calories: list[int]):
         return max(calories)
@@ -20,4 +25,4 @@ class Day1(BaseAdventDay):
         return sum(sorted(calories, reverse=True)[:3])
 
 
-Instance = Day1()
+ProblemClass = Day1
