@@ -115,7 +115,7 @@ class Day7(BaseAdventDay):
         return root
 
     def run_1(self, root: Dir) -> int:
-        return sum(s for d in root.list_dirs() if (s := d.size) <= 100000)
+        return sum(d.size for d in root.list_dirs() if d.size <= 100000)
 
     def run_2(self, root: Dir) -> int:
         total_space = 70000000
