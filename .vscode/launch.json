@@ -1,20 +1,14 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Python: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "runner.py",
-            "args": [
-                "3",
-                "2"
-            ],
-            "console": "integratedTerminal",
-            "justMyCode": true,
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Debug day",
+      "type": "python",
+      "request": "launch",
+      "program": "runner.py",
+      "args": ["9", "1"],
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
 }
