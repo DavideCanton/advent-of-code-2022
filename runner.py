@@ -34,7 +34,8 @@ def main():
     else:
         input_folder = Path(__file__).parent / "inputs"
         res = module.ProblemClass(input_folder).run(args.var)
-        print(f"Result for day {args.day}, variant {args.var}, is {res}.")
+        print(f"Result for day {args.day}, variant {args.var}, is:")
+        print(res)
 
 
 if __name__ == "__main__":
