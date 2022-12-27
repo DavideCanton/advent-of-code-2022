@@ -8,8 +8,8 @@ Play = Literal["P", "R", "S"]
 OppChar = Literal["A", "B", "C"]
 YourChar = Literal["X", "Y", "Z"]
 
-P: list[Play] = list("RPS")
-OPPONENT: dict[OppChar, Play] = dict(zip("ABC", P))
+P: list[Play] = list("RPS")  # type: ignore
+OPPONENT: dict[OppChar, Play] = dict(zip("ABC", P))  # type: ignore
 SCORES: dict[Play, int] = dict(zip(P, range(1, 4)))
 
 WINS: dict[Play, Play] = {"S": "P", "R": "S", "P": "R"}
@@ -37,7 +37,7 @@ class Base(metaclass=ABCMeta):
 
 class Result1(Base):
     def __init__(self):
-        self.yours_table: dict[YourChar, Play] = dict(zip("XYZ", P))
+        self.yours_table: dict[YourChar, Play] = dict(zip("XYZ", P))  # type: ignore
 
     def _compute_iy(self, io: Play, yours: YourChar) -> Play:
         return self.yours_table[yours]
@@ -54,20 +54,20 @@ class Result2(Base):
                 return LOSES[io]
 
 
+Input = list[list[str]]
+
+
 @dataclass
-class Day2(SameComputationAdventDay):
+class Day2(SameComputationAdventDay[Input]):
     day = 2
 
-    def parse_input(self, input: TextIO) -> list[list[str]]:
+    def parse_input(self, input: TextIO) -> Input:
         return [r.strip().split() for r in input]
 
-    def compute(self, variant: int, rows: list[list[str]]) -> int:
+    def compute(self, variant: int, rows: Input) -> int:
         if variant == 1:
             fn = Result1()
         else:
             fn = Result2()
 
-        return sum(fn(*r) for r in rows)
-
-
-ProblemClass = Day2
+        return sum(fn(*r) for r in rows)  # type: ignore

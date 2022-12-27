@@ -1,38 +1,32 @@
 from __future__ import annotations
 
-import operator
 import re
-from abc import ABCMeta, abstractmethod
 from collections import Counter, deque
 from dataclasses import dataclass
-from typing import Callable, Generic, Literal, Sequence, TextIO, TypeVar
+from math import lcm
+from operator import add, mul
+from typing import Callable, Literal, TextIO, TypedDict, cast
 
 from advent.common import SameComputationAdventDay
 
-Num = TypeVar("Num")
-
-
-def _parse(val):
-    try:
-        val = int(val)
-    except ValueError:
-        pass
-    return val
+Old = Literal["old"]
 
 
 @dataclass
-class Monkey(Generic[Num], metaclass=ABCMeta):
+class Monkey:
     id: int
-    items: deque[Num]
+    items: deque[int]
     test_den: int
     if_true: int
     if_false: int
-    op1: int | Literal["old"]
-    op2: int | Literal["old"]
+    operand1: int | Old
+    operand2: int | Old
+    operation: Callable[[int, int], int]
+    post_op: Callable[[int], int]
 
-    def do_turn(self, c: Counter, monkeys: dict[int, Monkey]):
+    def do_turn(self, counter: Counter[int], monkeys: dict[int, Monkey]):
         while self.items:
-            c[self.id] += 1
+            counter[self.id] += 1
             old = self.items.popleft()
             new, div = self._process(old)
             if div:
@@ -42,89 +36,11 @@ class Monkey(Generic[Num], metaclass=ABCMeta):
 
             monkeys[dest].items.append(new)
 
-    @abstractmethod
-    def _process(self, n: Num) -> tuple[Num, bool]:
-        pass
-
-
-@dataclass
-class MonkeyInt(Monkey[int]):
-    den: int
-    op: Callable[[int, int], int]
-
-    @classmethod
-    def parse(cls, group_dict: dict, den: int) -> MonkeyInt:
-        items_str: list[str] = [
-            element
-            for element in group_dict["items"].replace(" ", "").split(",")
-            if element
-        ]
-        items = deque(item for item in map(int, items_str))
-
-        opd = group_dict["op"]
-        if opd == "+":
-            op = operator.add
-        elif opd == "*":
-            op = operator.mul
-        else:
-            raise ValueError(f"Invalid op: {opd}")
-
-        return MonkeyInt(
-            id=int(group_dict["id"]),
-            items=items,
-            test_den=int(group_dict["den"]),
-            if_false=int(group_dict["idf"]),
-            if_true=int(group_dict["idt"]),
-            den=den,
-            op=op,
-            op1=_parse(group_dict["op1"]),
-            op2=_parse(group_dict["op2"]),
-        )
-
     def _process(self, old: int) -> tuple[int, bool]:
-        op1 = old if self.op1 == "old" else self.op1
-        op2 = old if self.op2 == "old" else self.op2
-        new = self.op(op1, op2) // self.den
+        op1 = old if self.operand1 == "old" else self.operand1
+        op2 = old if self.operand2 == "old" else self.operand2
+        new = self.post_op(self.operation(op1, op2))
         return new, new % self.test_den == 0
-
-
-Rems = dict[int, int]
-
-
-@dataclass
-class MonkeyRem(Monkey[Rems]):
-    op: str
-
-    @classmethod
-    def parse(cls, group_dict: dict, dens: Sequence[int]) -> MonkeyRem:
-        items_str: list[str] = [
-            s for s in group_dict["items"].replace(" ", "").split(",") if s
-        ]
-        items = deque({d: item % d for d in dens} for item in map(int, items_str))
-
-        return MonkeyRem(
-            id=int(group_dict["id"]),
-            items=items,
-            test_den=int(group_dict["den"]),
-            if_false=int(group_dict["idf"]),
-            if_true=int(group_dict["idt"]),
-            op1=_parse(group_dict["op1"]),
-            op2=_parse(group_dict["op2"]),
-            op=group_dict["op"],
-        )
-
-    def _process(self, old: Rems) -> tuple[Rems, bool]:
-        match self.op:
-            case "+":
-                operand = self.op2 if self.op1 == "old" else self.op1
-                assert isinstance(operand, int)
-                for (d, v) in old.items():
-                    old[d] = (v + operand) % d
-            case "*":
-                operand = self.op2 if self.op1 == "old" else self.op1
-                for (d, v) in old.items():
-                    old[d] = (v * (v if operand == "old" else operand)) % d
-        return old, old[self.test_den] == 0
 
 
 MONKEY_REGEX = re.compile(
@@ -140,22 +56,42 @@ MONKEY_REGEX = re.compile(
 )
 
 
+class GroupDict(TypedDict):
+    id: str
+    items: str
+    op1: str
+    op2: str
+    op: str
+    den: str
+    idt: str
+    idf: str
+
+
 @dataclass
 class Day11(SameComputationAdventDay):
     day = 11
 
-    def parse_input(self, input: TextIO) -> list[dict]:
-        return [match.groupdict() for match in MONKEY_REGEX.finditer(input.read())]
+    def parse_input(self, input: TextIO) -> list[GroupDict]:
+        return [
+            cast(GroupDict, match.groupdict())
+            for match in MONKEY_REGEX.finditer(input.read())
+        ]
 
-    def compute(self, var, groups: list[dict]) -> int:
+    def compute(self, var, groups: list[GroupDict]) -> int:
         if var == 1:
             rounds = 20
-            monkey_list = [MonkeyInt.parse(g, 3) for g in groups]
+
+            def post_op(x):
+                return x // 3
+
         else:
             rounds = 10_000
-            dens = [int(g["den"]) for g in groups]
-            monkey_list = [MonkeyRem.parse(g, dens) for g in groups]
+            total = lcm(*(int(g["den"]) for g in groups))
 
+            def post_op(x):
+                return x % total
+
+        monkey_list = [self._parse(g, post_op) for g in groups]
         monkeys: dict[int, Monkey] = {m.id: m for m in monkey_list}
 
         counter = Counter()
@@ -166,5 +102,33 @@ class Day11(SameComputationAdventDay):
         m1, m2 = counter.most_common(2)
         return m1[1] * m2[1]
 
+    def _parse(self, group_dict: GroupDict, post_op: Callable[[int], int]) -> Monkey:
+        def _parse(val: str) -> int | Old:
+            return val if val == "old" else int(val)
 
-ProblemClass = Day11
+        items_str = [
+            element
+            for element in group_dict["items"].replace(" ", "").split(",")
+            if element
+        ]
+        items = deque(item for item in map(int, items_str))
+
+        match group_dict["op"]:
+            case "+":
+                operation = add
+            case "*":
+                operation = mul
+            case _ as opd:
+                raise ValueError(f"Invalid op: {opd}")
+
+        return Monkey(
+            id=int(group_dict["id"]),
+            items=items,
+            test_den=int(group_dict["den"]),
+            if_false=int(group_dict["idf"]),
+            if_true=int(group_dict["idt"]),
+            operation=operation,
+            operand1=_parse(group_dict["op1"]),
+            operand2=_parse(group_dict["op2"]),
+            post_op=post_op,
+        )

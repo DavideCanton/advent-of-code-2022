@@ -61,13 +61,13 @@ class NoOp(Instr):
 
 
 @dataclass
-class Day10(BaseAdventDay):
+class Day10(BaseAdventDay[list[Instr]]):
     day = 10
 
     def parse_input(self, input: TextIO) -> list[Instr]:
         return [Instr.parse(line) for line in input]
 
-    def run_1(self, input: list[Instr]) -> int:
+    def _run_1(self, input: list[Instr]) -> int:
         x = 1
         cycles = 1
         strength = 0
@@ -91,7 +91,7 @@ class Day10(BaseAdventDay):
 
         return strength
 
-    def run_2(self, input: list[Instr]) -> str:
+    def _run_2(self, input: list[Instr]) -> str:
         x = 1
         cycles = 0
         line = 40
@@ -112,6 +112,3 @@ class Day10(BaseAdventDay):
             cycles += instr.CYCLES
 
         return "\n".join("".join(x) for x in buf)
-
-
-ProblemClass = Day10

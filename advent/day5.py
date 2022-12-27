@@ -22,7 +22,7 @@ class Input:
 
 
 @dataclass
-class Day5(SameComputationAdventDay):
+class Day5(SameComputationAdventDay[Input]):
     day = 5
 
     def parse_input(self, input: TextIO) -> Input:
@@ -77,9 +77,6 @@ class Day5(SameComputationAdventDay):
         regex = re.compile(r"^move (\d+) from (\w+) to (\w+)$")
         moves = []
         for row in input:
-            target, from_, to = regex.match(row.strip()).groups()
+            target, from_, to = regex.match(row.strip()).groups()  # type: ignore
             moves.append(Move(int(target), from_, to))
         return moves
-
-
-ProblemClass = Day5

@@ -1,25 +1,32 @@
-import importlib
 from pathlib import Path
-from typing import ClassVar
+from typing import Any, ClassVar
 
 import pytest
+
+from advent import CLASSES
 
 FOLDER = Path(__file__).parent.parent.parent / "inputs"
 
 
 class Base:
     DAY: ClassVar[int]
-    DATA: ClassVar[tuple]
+    DATA: ClassVar[tuple[Any, Any]]
 
-    def _create_case(self, request):
-        index = request.param
-        val = self.DATA[index]
-        if val is None:
-            pytest.skip()
-        return (index + 1, val)
+    def __init_subclass__(cls) -> None:
+        params = [
+            pytest.param((var, test_case), id=f"var-{var}")
+            for var, test_case in enumerate(cls.DATA, start=1)
+        ]
+
+        # define dynamic fixture from data
+        setattr(
+            cls,
+            "test_cases",
+            pytest.fixture(params=params)(lambda self, request: request.param),
+        )
 
     def test(self, test_cases):
         variant, exp = test_cases
-        module = importlib.import_module(f"advent.day{self.DAY}")
-        res = module.ProblemClass(FOLDER).run(variant)
+        cls = CLASSES[self.DAY]
+        res = cls(FOLDER).run(variant)
         assert res == exp

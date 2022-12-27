@@ -9,7 +9,7 @@ cached_ord = cache(ord)
 
 
 @dataclass
-class Day3(BaseAdventDay):
+class Day3(BaseAdventDay[list[str]]):
     day = 3
 
     def get_score(self, letter) -> int:
@@ -24,7 +24,7 @@ class Day3(BaseAdventDay):
     def parse_input(self, input: TextIO) -> list[str]:
         return [row.strip() for row in input]
 
-    def run_1(self, rows: list[str]) -> int:
+    def _run_1(self, rows: list[str]) -> int:
         def process_row(row):
             half = len(row) // 2
             left, right = row[:half], row[half:]
@@ -32,7 +32,7 @@ class Day3(BaseAdventDay):
 
         return sum(max(self.get_score(c) for c in process_row(r)) for r in rows)
 
-    def run_2(self, rows: list[str]) -> int:
+    def _run_2(self, rows: list[str]) -> int:
         tot = 0
         for i in it.count():
             start = 3 * i
@@ -44,6 +44,3 @@ class Day3(BaseAdventDay):
             badge = next(iter(ret))
             tot += self.get_score(badge)
         return tot
-
-
-ProblemClass = Day3

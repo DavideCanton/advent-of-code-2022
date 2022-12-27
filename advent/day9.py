@@ -22,7 +22,7 @@ def components(p: Pos) -> Iterable[Pos]:
 
 
 @dataclass
-class Day9(SameComputationAdventDay):
+class Day9(SameComputationAdventDay[Moves]):
     day = 9
 
     def parse_input(self, input: TextIO) -> Moves:
@@ -87,6 +87,3 @@ class Day9(SameComputationAdventDay):
             next = self._move(next, m)
 
         return next
-
-
-ProblemClass = Day9

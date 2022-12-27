@@ -1,11 +1,13 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import ClassVar, TextIO
+from typing import Any, ClassVar, Generic, TextIO, TypeVar
+
+_I = TypeVar("_I")
 
 
 @dataclass
-class BaseAdventDay(metaclass=ABCMeta):
+class BaseAdventDay(Generic[_I], metaclass=ABCMeta):
     day: ClassVar[int]
     input_folder: Path
 
@@ -14,23 +16,42 @@ class BaseAdventDay(metaclass=ABCMeta):
         return asset.open()
 
     @abstractmethod
-    def parse_input(self, input: TextIO):
+    def parse_input(self, input: TextIO) -> _I:
         pass
 
-    def run(self, variant):
+    @abstractmethod
+    def _run_1(self, input: _I):
+        pass
+
+    @abstractmethod
+    def _run_2(self, input: _I):
+        pass
+
+    def run(self, variant: int) -> Any:
         with self.load_input() as input:
             input = self.parse_input(input)
-        method = getattr(self, f"run_{variant}")
-        return method(input)
+
+        match variant:
+            case 1:
+                return self._run_1(input)
+            case 2:
+                return self._run_2(input)
+            # should never happen, validated by the parser
+            case _ as v:
+                raise ValueError(f"Unsupported variant: {v}")
 
 
 @dataclass
-class SameComputationAdventDay(BaseAdventDay, metaclass=ABCMeta):
+class SameComputationAdventDay(BaseAdventDay[_I], metaclass=ABCMeta):
     @abstractmethod
-    def compute(self, var, input):
+    def compute(self, var: int, input: _I):
         pass
 
-    def run(self, variant):
-        with self.load_input() as input:
-            input = self.parse_input(input)
+    def _run_1(self, input: _I):
+        return self._common_run(1, input)
+
+    def _run_2(self, input: _I):
+        return self._common_run(2, input)
+
+    def _common_run(self, variant: int, input: _I):
         return self.compute(variant, input)

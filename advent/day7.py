@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import cached_property
-from typing import TextIO
+from typing import TextIO, TypeGuard
 
 from advent.common import BaseAdventDay
 
@@ -39,7 +39,7 @@ ROOT = "/"
 
 
 @dataclass
-class Dir:
+class Dir(Entry):
     name: str
     children: dict[str, Entry]
     parent: Dir | None
@@ -88,7 +88,7 @@ class Day7(BaseAdventDay):
     def parse_input(self, input: TextIO) -> Dir:
         root = Dir.root()
         cur = None
-        it = iter(input)
+        it = iter(input)  # type: ignore
 
         end_of_file = object()
         command = next(it, end_of_file)
@@ -105,6 +105,7 @@ class Day7(BaseAdventDay):
                         next_command = row
                         break
                     else:
+                        assert isinstance(row, str)
                         output.append(row.strip())
             else:
                 next_command = next(it, end_of_file)
@@ -114,10 +115,10 @@ class Day7(BaseAdventDay):
 
         return root
 
-    def run_1(self, root: Dir) -> int:
+    def _run_1(self, root: Dir) -> int:
         return sum(d.size for d in root.list_dirs() if d.size <= 100000)
 
-    def run_2(self, root: Dir) -> int:
+    def _run_2(self, root: Dir) -> int:
         total_space = 70000000
         free_space = total_space - root.size
         to_clean = 30000000 - free_space
@@ -131,19 +132,21 @@ class Day7(BaseAdventDay):
     ) -> Dir:
         match command.split():
             case ["ls"]:
+                assert cur is not None
                 for line in output:
-                    assert cur is not None
                     self._update(cur, line)
                 return cur
             case ["cd", t] if t == ROOT:
                 return root
             case ["cd", t] if t == "..":
                 assert cur is not None
+                if cur.parent is None:
+                    raise ValueError("Parent of root is not defined")
                 return cur.parent
             case ["cd", t]:
                 assert cur is not None
                 if any((d := c) for name, c in cur.children.items() if name == t):
-                    assert isinstance(d, Dir)
+                    assert isinstance(d, Dir)  # type: ignore
                     return d
                 raise ValueError(f"Directory {cur.name} has no child named {t}.")
             case _:
@@ -156,8 +159,5 @@ class Day7(BaseAdventDay):
             case [size, file_name]:
                 cur.file(file_name, int(size))
 
-    def _is_command(self, row: str) -> bool:
-        return row[0] == "$"
-
-
-ProblemClass = Day7
+    def _is_command(self, row: str | object) -> TypeGuard[str]:
+        return isinstance(row, str) and row[0] == "$"

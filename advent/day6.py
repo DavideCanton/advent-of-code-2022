@@ -6,7 +6,7 @@ from advent.common import SameComputationAdventDay
 
 
 @dataclass
-class Day6(SameComputationAdventDay):
+class Day6(SameComputationAdventDay[str]):
     day = 6
 
     def parse_input(self, input: TextIO) -> str:
@@ -28,6 +28,3 @@ class Day6(SameComputationAdventDay):
             buf.append(c)
 
         return start
-
-
-ProblemClass = Day6

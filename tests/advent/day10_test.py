@@ -1,5 +1,3 @@
-import pytest
-
 from tests.advent.conftest import Base
 
 
@@ -16,7 +14,3 @@ class TestDay10(Base):
             "#..#..###.####.#..#.###..####.#..#..##.."
         ),
     )
-
-    @pytest.fixture(params=range(len(DATA)))
-    def test_cases(self, request):
-        return self._create_case(request)

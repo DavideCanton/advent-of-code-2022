@@ -9,13 +9,13 @@ R = tuple[int, int]
 
 
 @dataclass
-class Day4(SameComputationAdventDay):
+class Day4(SameComputationAdventDay[list[tuple[R, R]]]):
     day = 4
 
     def parse_input(self, input: TextIO) -> list[tuple[R, R]]:
         def process(row: str):
             try:
-                d1, d2, d3, d4 = map(int, REGEX.match(row).groups())
+                d1, d2, d3, d4 = map(int, REGEX.match(row).groups())  # type: ignore
                 return (d1, d2), (d3, d4)
             except AttributeError:
                 raise ValueError(f"Invalid row: {row}")
@@ -35,6 +35,3 @@ class Day4(SameComputationAdventDay):
 
     def _overlaps(self, a: int, b: int, c: int, d: int) -> bool:
         return b >= c and a <= d
-
-
-ProblemClass = Day4

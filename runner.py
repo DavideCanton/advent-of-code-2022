@@ -1,6 +1,7 @@
 import argparse
-import importlib
 from pathlib import Path
+
+from advent import CLASSES
 
 
 def create_parser():
@@ -28,12 +29,12 @@ def create_parser():
 def main():
     args = create_parser().parse_args()
     try:
-        module = importlib.import_module(f"advent.day{args.day}")
-    except ImportError:
+        cls = CLASSES[args.day]
+    except KeyError:
         print("Module not yet implemented!")
     else:
         input_folder = Path(__file__).parent / "inputs"
-        res = module.ProblemClass(input_folder).run(args.var)
+        res = cls(input_folder).run(args.var)
         print(f"Result for day {args.day}, variant {args.var}, is:")
         print(res)
 

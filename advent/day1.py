@@ -5,7 +5,7 @@ from advent.common import BaseAdventDay
 
 
 @dataclass
-class Day1(BaseAdventDay):
+class Day1(BaseAdventDay[list[int]]):
     day = 1
 
     def parse_input(self, input: TextIO) -> list[int]:
@@ -18,11 +18,8 @@ class Day1(BaseAdventDay):
                 calories.append(0)
         return calories
 
-    def run_1(self, calories: list[int]):
+    def _run_1(self, calories: list[int]):
         return max(calories)
 
-    def run_2(self, calories: list[int]):
+    def _run_2(self, calories: list[int]):
         return sum(sorted(calories, reverse=True)[:3])
-
-
-ProblemClass = Day1
