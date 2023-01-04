@@ -1,7 +1,7 @@
 from __future__ import annotations
 from collections import defaultdict
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import total_ordering
 from typing import NamedTuple, TextIO
 import heapq as hq
@@ -25,6 +25,7 @@ class Input(NamedTuple):
 class HeapNode:
     dist: int
     node: Node
+    valid: bool = field(init=False, default=True)
 
     def __eq__(self, other):
         return self.dist == other.dist
@@ -41,23 +42,27 @@ class HeapQueue:
         self.queue = []
         self.mapping = {}
 
-    def __bool__(self) -> bool:
-        return bool(self.queue)
+    def pop(self) -> HeapNode | None:
+        ret = None
+        while self.queue:
+            node = hq.heappop(self.queue)
+            if node.valid:
+                ret = node
+                break
 
-    def pop(self) -> HeapNode:
-        node = hq.heappop(self.queue)
-        self.mapping.pop(node.node)
-        return node
+        if not ret:
+            return None
+
+        self.mapping.pop(ret.node)
+        return ret
 
     def push(self, node: Node, dist: int) -> None:
         if hn := self.mapping.get(node):
-            # not really the best way to do it...
-            hn.dist = dist
-            hq.heapify(self.queue)
-        else:
-            hn = HeapNode(dist, node)
-            hq.heappush(self.queue, hn)
-            self.mapping[node] = hn
+            hn.valid = False
+
+        hn = HeapNode(dist, node)
+        hq.heappush(self.queue, hn)
+        self.mapping[node] = hn
 
 
 @dataclass
@@ -108,7 +113,7 @@ class Day12(BaseAdventDay[Input]):
                 for c in candidates:
                     s = _score(matrix[c[0]][c[1]])
                     if s - cur_score <= 1:
-                        graph[cur].append((c, 1))
+                        graph[c].append((cur, 1))
 
         assert start is not None
         assert goal is not None
@@ -117,20 +122,21 @@ class Day12(BaseAdventDay[Input]):
             start, goal, {k: tuple(v) for k, v in graph.items()}, scores, rows, cols
         )
 
-    def _find_path(self, start: Node, goal: Node, graph: Graph) -> dict[Node, int]:
+    def _find_path(self, start: Node, graph: Graph) -> dict[Node, int]:
         dist: dict[Node, int] = defaultdict(lambda: _M)
         queue = HeapQueue()
 
-        queue.push(start, 0)
         _M = 99999
+        for n in graph:
+            queue.push(n, _M)
+        queue.push(start, 0)
 
-        while queue:
+        while True:
             cur_n = queue.pop()
+            if not cur_n:
+                break
             cur = cur_n.node
             cur_d = cur_n.dist
-
-            if cur == goal:
-                break
 
             for adj, weight in graph.get(cur, ()):
                 adj_dist = dist[adj]
@@ -143,15 +149,12 @@ class Day12(BaseAdventDay[Input]):
         return dist
 
     def _run_1(self, input: Input):
-        res = self._find_path(input.start, input.goal, input.graph)
+        res = self._find_path(input.goal, input.graph)
         assert res is not None
-        return res[input.goal]
+        return res[input.start]
 
     def _run_2(self, input: Input):
-        a = {
-            r[input.goal]
-            for n, e in input.elevations.items()
-            if e == 0 and (r := self._find_path(n, input.goal, input.graph))
-        }
+        r = self._find_path(input.goal, input.graph)
+        a = {r[n] for n, e in input.elevations.items() if e == 0}
 
         return min(a)
