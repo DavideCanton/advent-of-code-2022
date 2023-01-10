@@ -11,7 +11,8 @@ to avoid spoilers!
 
 ## Usage
 
-First, install the requirements by running `pip install -r requirements.txt`.
+These solutions use no external library, the requirements specified in `requirements.txt` are used only for linting/formatting
+and running tests.
 
 ```
 $ python runner.py <day> <var>
@@ -23,4 +24,5 @@ where:
 
 ## Test run
 
-Tests can be run by using `pytest`.
+Tests can be run by using `pytest` after installing the requirements by running `pip install -r requirements.txt`.
+
