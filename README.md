@@ -19,7 +19,7 @@ $ python runner.py <day> <var>
 
 where:
 - `day` is the day of the advent to run
-- `var` is the variant of the problem to run (defaults to 1, typically there are just 2).
+- `var` is the variant of the problem to run (defaults to 1, up to now I've never encountered a problem with more than 2 questions).
 
 ## Test run
 
