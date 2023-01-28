@@ -6,7 +6,7 @@
       "type": "python",
       "request": "launch",
       "program": "runner.py",
-      "args": ["12", "1"],
+      "args": ["13", "2"],
       "console": "integratedTerminal",
       "justMyCode": true
     }
