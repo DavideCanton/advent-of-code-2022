@@ -18,7 +18,7 @@ class Day4(SameComputationAdventDay[list[tuple[R, R]]]):
                 d1, d2, d3, d4 = map(int, REGEX.match(row).groups())  # type: ignore
                 return (d1, d2), (d3, d4)
             except AttributeError:
-                raise ValueError(f"Invalid row: {row}")
+                raise ValueError(f"Invalid row: {row}") from None
 
         return [process(row.strip()) for row in input]
 

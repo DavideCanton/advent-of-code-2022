@@ -1,3 +1,5 @@
-[tool.flake8]
-max_line_length = 100
-extend-ignore = "E203"
+[tool.ruff]
+select = ["E", "F", "B"]
+line-length = 100
+ignore = ["B905", "E999"]
+target-version = "py311"

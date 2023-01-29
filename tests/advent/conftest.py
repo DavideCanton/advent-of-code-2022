@@ -19,7 +19,7 @@ class Base:
         ]
 
         # define dynamic fixture from data
-        setattr(
+        setattr(  # noqa: B010
             cls,
             "test_cases",
             pytest.fixture(params=params)(lambda self, request: request.param),
