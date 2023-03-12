@@ -145,9 +145,10 @@ class Day7(BaseAdventDay):
                 return cur.parent
             case ["cd", t]:
                 assert cur is not None
-                if any((d := c) for name, c in cur.children.items() if name == t):
-                    assert isinstance(d, Dir)  # type: ignore
-                    return d
+                dir = next((c for name, c in cur.children.items() if name == t), None)
+                if dir:
+                    assert isinstance(dir, Dir)
+                    return dir
                 raise ValueError(f"Directory {cur.name} has no child named {t}.")
             case _:
                 raise ValueError(f"Invalid command: {command}")
