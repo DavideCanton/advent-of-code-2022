@@ -1,10 +1,11 @@
 from __future__ import annotations
-from collections import defaultdict
 
+import heapq as hq
+from collections import defaultdict
 from dataclasses import dataclass, field
 from functools import total_ordering
 from typing import NamedTuple, TextIO
-import heapq as hq
+
 from advent.common import BaseAdventDay
 
 Node = tuple[int, int]

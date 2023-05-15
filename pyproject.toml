@@ -1,5 +1,5 @@
 [tool.ruff]
-select = ["E", "F", "B"]
+select = ["E", "F", "B", "I"]
 line-length = 100
-ignore = ["B905", "E999"]
+ignore = ["B905"]
 target-version = "py311"
