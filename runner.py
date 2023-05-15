@@ -21,7 +21,7 @@ def create_parser():
         metavar="VAR",
         type=int,
         nargs="?",
-        choices=list(range(1, 3)),
+        choices=[1, 2],
     )
     return parser
 
