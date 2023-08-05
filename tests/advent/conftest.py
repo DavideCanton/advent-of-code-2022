@@ -19,11 +19,10 @@ class Base:
         ]
 
         # define dynamic fixture from data
-        setattr(  # noqa: B010
-            cls,
-            "test_cases",
-            pytest.fixture(params=params)(lambda self, request: request.param),
-        )
+        cls.test_cases = pytest.fixture(params=params)(cls._getter)  # type: ignore
+
+    def _getter(self, request):
+        return request.param
 
     def test(self, test_cases):
         variant, exp = test_cases
