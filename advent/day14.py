@@ -1,152 +1,107 @@
 from __future__ import annotations
 
-import time
-from collections.abc import Iterator
-from contextlib import contextmanager, nullcontext
-from dataclasses import dataclass, field
-from functools import lru_cache
-from itertools import islice
-from typing import TextIO
+from dataclasses import dataclass
+from enum import Enum, auto
+from itertools import pairwise
+from typing import Iterable, TextIO
 
 from advent.common import BaseAdventDay
 
 Pos = tuple[int, int]
 
 
-@dataclass(frozen=True)
+class CellType(Enum):
+    Empty = auto()
+    Wall = auto()
+    Sand = auto()
+
+
 class Path:
-    pos: tuple[Pos, ...]
+    all_pos: frozenset[Pos]
+
+    def __init__(self, pos: Iterable[Pos]):
+        all_pos = set()
+
+        for p1, p2 in pairwise(pos):
+            if p1[0] == p2[0]:
+                from_ = min(p1[1], p2[1])
+                to = max(p1[1], p2[1])
+                for y in range(from_, to + 1):
+                    all_pos.add((p1[0], y))
+            else:
+                from_ = min(p1[0], p2[0])
+                to = max(p1[0], p2[0])
+                for x in range(from_, to + 1):
+                    all_pos.add((x, p1[1]))
+
+        self.all_pos = frozenset(all_pos)
 
     def __iter__(self):
-        return iter(self.pos)
+        return iter(self.all_pos)
 
-    def pairwise(self) -> Iterator[tuple[Pos, Pos]]:
-        it1 = iter(self.pos)
-        it2 = islice(self.pos, 1, None)
-        for p1, p2 in zip(it1, it2):
-            yield p1, p2
-
-    @lru_cache(1024)  # noqa: B019
     def __contains__(self, pos: Pos) -> bool:
-        x, y = pos
-        for p1, p2 in self.pairwise():
-            x1, y1 = p1
-            x2, y2 = p2
-
-            if x1 > x2:
-                x1, x2 = x2, x1
-            if y1 > y2:
-                y1, y2 = y2, y1
-
-            if x1 <= x <= x2 and y1 <= y <= y2:
-                return True
-
-        return False
+        return pos in self.all_pos
 
 
-@dataclass
 class Board:
     paths: list[Path]
-    start: Pos = field(default=(500, 0))
-    sand: set[Pos] = field(init=False, default_factory=set)
-    edge: int = field(init=False)
-    using: bool = field(init=False, default=False)
+    blocked: dict[Pos, CellType]
 
-    def __post_init__(self):
+    def __init__(self, paths: list[Path], start: Pos = (500, 0)):
+        self.paths = paths
+        self.start = start
+        self.sand = 0
+        self.blocked = {}
         self.edge = max(y for p in self.paths for (_, y) in p)
 
-    @contextmanager
-    def use(self):
-        try:
-            self.using = True
-            yield
-        finally:
-            self.using = False
-            for p in self.paths:
-                p.__contains__.cache_clear()
+    def simulate(self, add_bottom_at: int | None = None):
+        end = False
 
-    def simulate(self, verbose=False, overwrite=False, sleep=None):
-        if not self.using:
-            raise ValueError("invalid state")
-        self.sand.clear()
-        abyss_reached = False
+        if add_bottom_at is not None:
+            edge = self.edge = self.edge + add_bottom_at
+            x_start = self.start[0]
+            bottom = Path([(x_start - edge, edge), (x_start + edge, edge)])
+            self.paths.append(bottom)
+            self.edge += add_bottom_at
 
-        if verbose:
-            ctx = open("out.txt", "w")
-        else:
-            ctx = nullcontext(TextIO())
+        while not end:
+            cur = self.start
+            while True:
+                next_pos = self._next_pos(cur)
+                if not next_pos:
+                    break
+                if next_pos[1] > self.edge:
+                    end = True
+                    break
+                cur = next_pos
 
-        with ctx as fo:
-            if verbose:
-                self.print_board(fo, overwrite)
+            if not end:
+                self.sand += 1
+                self.blocked[cur] = CellType.Sand
 
-            while not abyss_reached:
-                cur = self.start
-                while True:
-                    if sleep is not None:
-                        time.sleep(sleep)
+            if cur == self.start:
+                end = True
 
-                    if verbose:
-                        self.print_board(fo, overwrite, cur)
-
-                    next_pos = self._next_pos(cur)
-                    if not next_pos:
-                        break
-                    if next_pos[1] > self.edge:
-                        abyss_reached = True
-                        break
-                    cur = next_pos
-
-                if not abyss_reached:
-                    self.sand.add(cur)
-                    if verbose:
-                        self.print_board(fo, overwrite)
-
-            return len(self.sand)
-
-    def print_board(self, fo: TextIO, overwrite, cur: Pos | None = None):
-        if overwrite:
-            fo.seek(0)
-        print(self.as_str(cur), file=fo)
-        print("=" * 100, file=fo)
-        fo.flush()
-
-    def as_str(self, cur: Pos | None = None) -> str:
-        left = min(x for p in self.paths for (x, _) in p)
-        right = max(x for p in self.paths for (x, _) in p)
-
-        buf = [["."] * (right - left + 1) for _ in range(self.edge + 1)]
-
-        for x, y in self.sand:
-            buf[y][x - left] = "o"
-
-        if cur:
-            x, y = cur
-            buf[y][x - left] = "x"
-
-        for p in self.paths:
-            for p1, p2 in p.pairwise():
-                if p1[0] == p2[0]:
-                    from_ = min(p1[1], p2[1])
-                    to = max(p1[1], p2[1])
-                    for y in range(from_, to + 1):
-                        buf[y][p1[0] - left] = "#"
-                else:
-                    from_ = min(p1[0], p2[0])
-                    to = max(p1[0], p2[0])
-                    for x in range(from_, to + 1):
-                        buf[p1[1]][x - left] = "#"
-
-        return "\n".join("".join(row) for row in buf)
+        return self.sand
 
     def _next_pos(self, cur: Pos) -> Pos | None:
         x, y = cur
         ny = y + 1
         for nx in [x, x - 1, x + 1]:
             new = (nx, ny)
-            if new not in self.sand and not any(new in p for p in self.paths):
+            if not self._is_blocked(new):
                 return new
         return None
+
+    def _is_blocked(self, pos):
+        cell = self.blocked.get(pos)
+        if cell is None:
+            if wall_present := any(pos in p for p in self.paths):
+                self.blocked[pos] = CellType.Wall
+            else:
+                self.blocked[pos] = CellType.Empty
+            return wall_present
+        return cell != CellType.Empty
 
 
 @dataclass
@@ -167,9 +122,7 @@ class Day14(BaseAdventDay[Board]):
         return Board(output)
 
     def _run_1(self, input: Board):
-        with input.use():
-            return input.simulate(verbose=False, overwrite=False) # 805
+        return input.simulate()
 
     def _run_2(self, input: Board):
-        return None
-
+        return input.simulate(2)

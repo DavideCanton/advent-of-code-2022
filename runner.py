@@ -1,6 +1,8 @@
 import argparse
 from pathlib import Path
 
+import pdbp  # noqa: F401
+
 from advent import CLASSES
 
 
