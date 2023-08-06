@@ -6,10 +6,19 @@
       "type": "python",
       "request": "launch",
       "program": "runner.py",
-      "args": ["14", "1"],
+      "args": ["15", "2"],
       "console": "integratedTerminal",
       "justMyCode": true
     },
+    {
+        "name": "Python: Debug day custom input",
+        "type": "python",
+        "request": "launch",
+        "program": "runner.py",
+        "args": ["15", "2", "-f", "foo.txt"],
+        "console": "integratedTerminal",
+        "justMyCode": true
+      },
     {
       "name": "Python: Current File",
       "type": "python",

@@ -26,6 +26,8 @@ class Base:
 
     def test(self, test_cases):
         variant, exp = test_cases
-        cls = CLASSES[self.DAY]
-        res = cls(FOLDER).run(variant)
+        day = self.DAY
+        cls = CLASSES[day]
+        file_path = FOLDER / f"day{day}.txt"
+        res = cls(file_path).run(variant)
         assert res == exp

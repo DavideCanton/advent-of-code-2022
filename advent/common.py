@@ -1,19 +1,17 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, ClassVar, Generic, TextIO, TypeVar
+from typing import Any, Generic, TextIO, TypeVar
 
 _I = TypeVar("_I")
 
 
 @dataclass
 class BaseAdventDay(Generic[_I], metaclass=ABCMeta):
-    day: ClassVar[int]
-    input_folder: Path
+    input_file: Path
 
-    def load_input(self) -> TextIO:
-        asset = self.input_folder / f"day{self.day}.txt"
-        return asset.open()
+    def load_input(self) -> TextIO:        
+        return self.input_file.open()
 
     @abstractmethod
     def parse_input(self, input: TextIO) -> _I:
