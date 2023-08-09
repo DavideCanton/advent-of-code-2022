@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from bisect import bisect_left
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 from functools import cached_property
 from itertools import pairwise
@@ -71,8 +71,11 @@ class Day15(BaseAdventDay[list[Sensor]]):
         target = 4000000
         freq = 4000000
 
-        for t in range(0, target):
-            covered, beacons = self._search(input, t, 0, target)
+        cnt1 = range(target // 2 + 1)
+        cnt2 = range(target, target // 2, -1)
+
+        for y in _alternate(cnt1, cnt2):
+            covered, beacons = self._search(input, y, 0, target)
 
             xs = set()
 
@@ -92,7 +95,8 @@ class Day15(BaseAdventDay[list[Sensor]]):
 
             assert len(xs) <= 1
             if len(xs) == 1:
-                return next(iter(xs)) * freq + t
+                x = xs.pop()
+                return x * freq + y
 
     def _search(
         self,
@@ -151,3 +155,14 @@ def _getter(val: int | None, fn: Callable[[int, int], int]) -> Callable[[int], i
         return lambda x: x
     else:
         return lambda x: fn(x, val)
+
+
+def _alternate(i1: Iterable[int], i2: Iterable[int]) -> Iterator[int]:
+    i1 = iter(i1)
+    i2 = iter(i2)
+    for a, b in zip(i1, i2):
+        yield a
+        yield b
+
+    yield from i1
+    yield from i2
