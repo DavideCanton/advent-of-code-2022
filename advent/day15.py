@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import re
 from bisect import bisect_left
-from collections.abc import Callable, Iterator
+from collections.abc import Callable
 from dataclasses import dataclass
-from functools import cached_property
+from functools import cached_property, lru_cache
+from itertools import combinations
 from typing import ClassVar, TextIO
 
 from advent.common import BaseAdventDay
@@ -31,7 +32,7 @@ class Range:
         return f"<{self.from_}, {self.to}>"
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Sensor:
     sensor: Pos
     beacon: Pos
@@ -64,16 +65,32 @@ class Day15(BaseAdventDay[list[Sensor]]):
         covered, beacons = self._covered_row(input, target)
         return sum(r.cells_inside for r in covered) - len(beacons)
 
+    # @profile
     def _run_2(self, input: list[Sensor]):
         target = 4000000
         freq = 4000000
 
-        for s in input:
-            for p in _border(s, 0, target):
-                if all(
-                    _manhattan(s2.sensor, p) > s2.distance for s2 in input if s != s2
-                ):
-                    return p[0] * freq + p[1]
+        for s1, s2 in combinations(input, 2):
+            for (x1, y1), (x2, y2) in _border_bounds(s1):
+                for (x3, y3), (x4, y4) in _border_bounds(s2):
+                    d = _det(x2 - x1, x3 - x4, y2 - y1, y3 - y4)
+                    if d == 0:
+                        # parallel borders, skip
+                        continue
+                    s = _det(x3 - x1, x3 - x4, y3 - y1, y3 - y4) / d
+                    t = _det(x2 - x1, x3 - x1, y2 - y1, y3 - y1) / d
+
+                    if 0 <= s <= 1 and 0 <= t <= 1:
+                        p = (int(x1 + s * (x2 - x1)), int(y1 + s * (y2 - y1)))
+                        if (
+                            0 <= p[0] <= target
+                            and 0 <= p[1] <= target
+                            and all(
+                                p != s.beacon and _manhattan(s.sensor, p) > s.distance
+                                for s in input
+                            )
+                        ):
+                            return p[0] * freq + p[1]
 
     def _covered_row(
         self,
@@ -138,19 +155,18 @@ def _manhattan(p1: Pos, p2: Pos) -> int:
     return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
 
 
-def _border(s: Sensor, min_v: int, max_v: int) -> Iterator[Pos]:
+@lru_cache(30)
+def _border_bounds(s: Sensor) -> tuple[tuple[Pos, Pos], ...]:
+    dist = s.distance + 1
     sx, sy = s.sensor
 
-    if sx < min_v or sx > max_v:
-        return
+    u = (sx, sy - dist)
+    d = (sx, sy + dist)
+    l = (sx - dist, sy)  # noqa: E741
+    r = (sx + dist, sy)
 
-    d = s.distance
-    min_dd = max(min_v - sy, -d - 1)
-    max_dd = min(max_v - sy, d + 1)
+    return ((u, l), (u, r), (d, l), (d, r))
 
-    for dd in range(min_dd, max_dd + 1):
-        h = d + 1 - abs(dd)
-        y = sy + dd
-        yield (sx + h, y)
-        if h != 0:
-            yield (sx - h, y)
+
+def _det(a, b, c, d):
+    return a * d - b * c
