@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import re
 from bisect import bisect_left
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from functools import cached_property
-from itertools import pairwise
 from typing import ClassVar, TextIO
 
 from advent.common import BaseAdventDay
@@ -43,9 +42,7 @@ class Sensor:
 
     @cached_property
     def distance(self) -> int:
-        sx, sy = self.sensor
-        bx, by = self.beacon
-        return abs(sx - bx) + abs(sy - by)
+        return _manhattan(self.beacon, self.sensor)
 
     @classmethod
     def parse(cls, row: str) -> Sensor:
@@ -64,41 +61,21 @@ class Day15(BaseAdventDay[list[Sensor]]):
 
     def _run_1(self, input: list[Sensor]) -> int:
         target = 2000000
-        covered, beacons = self._search(input, target)
+        covered, beacons = self._covered_row(input, target)
         return sum(r.cells_inside for r in covered) - len(beacons)
 
     def _run_2(self, input: list[Sensor]):
         target = 4000000
         freq = 4000000
 
-        cnt1 = range(target // 2 + 1)
-        cnt2 = range(target, target // 2, -1)
+        for s in input:
+            for p in _border(s, 0, target):
+                if all(
+                    _manhattan(s2.sensor, p) > s2.distance for s2 in input if s != s2
+                ):
+                    return p[0] * freq + p[1]
 
-        for y in _alternate(cnt1, cnt2):
-            covered, beacons = self._search(input, y, 0, target)
-
-            xs = set()
-
-            if covered and covered[0].from_ > 0:
-                xs.update(range(covered[0].from_))
-            elif covered and covered[-1].to < target:
-                xs.update(range(covered[1].to, target + 1))
-
-            for r1, r2 in pairwise(covered):
-                xs.update(range(r1.to + 1, r2.from_))
-
-            for b in beacons:
-                try:
-                    xs.remove(b)
-                except KeyError:
-                    pass
-
-            assert len(xs) <= 1
-            if len(xs) == 1:
-                x = xs.pop()
-                return x * freq + y
-
-    def _search(
+    def _covered_row(
         self,
         input: list[Sensor],
         target: int,
@@ -157,12 +134,23 @@ def _getter(val: int | None, fn: Callable[[int, int], int]) -> Callable[[int], i
         return lambda x: fn(x, val)
 
 
-def _alternate(i1: Iterable[int], i2: Iterable[int]) -> Iterator[int]:
-    i1 = iter(i1)
-    i2 = iter(i2)
-    for a, b in zip(i1, i2):
-        yield a
-        yield b
+def _manhattan(p1: Pos, p2: Pos) -> int:
+    return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
 
-    yield from i1
-    yield from i2
+
+def _border(s: Sensor, min_v: int, max_v: int) -> Iterator[Pos]:
+    sx, sy = s.sensor
+
+    if sx < min_v or sx > max_v:
+        return
+
+    d = s.distance
+    min_dd = max(min_v - sy, -d - 1)
+    max_dd = min(max_v - sy, d + 1)
+
+    for dd in range(min_dd, max_dd + 1):
+        h = d + 1 - abs(dd)
+        y = sy + dd
+        yield (sx + h, y)
+        if h != 0:
+            yield (sx - h, y)
