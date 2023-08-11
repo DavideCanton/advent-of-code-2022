@@ -65,7 +65,6 @@ class Day15(BaseAdventDay[list[Sensor]]):
         covered, beacons = self._covered_row(input, target)
         return sum(r.cells_inside for r in covered) - len(beacons)
 
-    # @profile
     def _run_2(self, input: list[Sensor]):
         target = 4000000
         freq = 4000000
