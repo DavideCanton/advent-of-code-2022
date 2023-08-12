@@ -15,7 +15,7 @@
         "type": "python",
         "request": "launch",
         "program": "runner.py",
-        "args": ["15", "2", "-f", "foo.txt"],
+        "args": ["16", "1", "-f", "foo.txt"],
         "console": "integratedTerminal",
         "justMyCode": true
       },

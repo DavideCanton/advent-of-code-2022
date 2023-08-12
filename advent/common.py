@@ -10,7 +10,7 @@ _I = TypeVar("_I")
 class BaseAdventDay(Generic[_I], metaclass=ABCMeta):
     input_file: Path
 
-    def load_input(self) -> TextIO:        
+    def load_input(self) -> TextIO:
         return self.input_file.open()
 
     @abstractmethod
