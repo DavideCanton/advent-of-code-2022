@@ -38,7 +38,7 @@ class Graph:
 
 @dataclass(slots=True)
 class State:
-    opened: set[str]
+    opened: set[Node]
     remaining: set[Node]
     pos: str
     t: int
@@ -54,19 +54,27 @@ class Day16(BaseAdventDay[Graph]):
     )
 
     def parse_input(self, input: TextIO) -> Graph:
-        g = Graph()
+        graph = Graph()
+
         for line in input:
-            if m := self.REGEX.match(line):
-                v, r, vs = m.groups()
-                g.add_node(Node(v, int(r)))
-                for vv in vs.split(", "):
-                    g.add_edge(v, vv)
-        g.check()
-        return g
+            if (match := self.REGEX.match(line)) is None:
+                continue
+
+            valve, rate, out_valves = match.groups()
+            graph.add_node(Node(valve, int(rate)))
+            for out_valve in out_valves.split(", "):
+                graph.add_edge(valve, out_valve)
+
+        graph.check()
+        return graph
 
     def _run_1(self, input: Graph):
         start = State(
-            set(), {n for n in input.nodes.values() if n.rate > 0}, "AA", 0, 0
+            opened=set(),
+            remaining={n for n in input.nodes.values() if n.rate > 0},
+            pos="AA",
+            t=0,
+            current_best=0,
         )
 
         dist = {
@@ -97,11 +105,11 @@ class Day16(BaseAdventDay[Graph]):
                 continue
 
             next_state = State(
-                state.opened | {adj.name},
-                state.remaining - {adj},
-                adj.name,
-                next_t,
-                state.current_best + (max_time - next_t) * adj.rate,
+                opened=state.opened | {adj},
+                remaining=state.remaining - {adj},
+                pos=adj.name,
+                t=next_t,
+                current_best=state.current_best + (max_time - next_t) * adj.rate,
             )
             ns.append(self._visit(next_state, dist, max_time))
 
