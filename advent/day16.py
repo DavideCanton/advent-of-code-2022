@@ -38,11 +38,14 @@ class Graph:
 
 @dataclass(slots=True)
 class State:
-    opened: set[Node]
-    remaining: set[Node]
+    opened: frozenset[Node]
+    remaining: frozenset[Node]
     pos: str
     t: int
     current_best: int
+
+
+DistanceMatrix = dict[tuple[str, str], int]
 
 
 @dataclass
@@ -70,13 +73,35 @@ class Day16(BaseAdventDay[Graph]):
 
     def _run_1(self, input: Graph):
         start = State(
-            opened=set(),
-            remaining={n for n in input.nodes.values() if n.rate > 0},
+            opened=frozenset(),
+            remaining=frozenset(n for n in input.nodes.values() if n.rate > 0),
             pos="AA",
             t=0,
             current_best=0,
         )
 
+        dist = self._compute_distance_matrix(input)
+        ans = self._visit(start, dist, 30, {})
+        return max(ans.values())
+
+    def _run_2(self, input: Graph):
+        dist = self._compute_distance_matrix(input)
+        start_valve = "AA"
+
+        start = State(
+            opened=frozenset(),
+            remaining=frozenset(n for n in input.nodes.values() if n.rate > 0),
+            pos=start_valve,
+            t=0,
+            current_best=0,
+        )
+        ans = self._visit(start, dist, 26, {})
+
+        return max(
+            m1 + m2 for k1, m1 in ans.items() for k2, m2 in ans.items() if not k1 & k2
+        )
+
+    def _compute_distance_matrix(self, input: Graph) -> DistanceMatrix:
         dist = {
             (i, j): 1 if j in input.edges[i] else 100000
             for i, j in product(input.nodes, repeat=2)
@@ -85,19 +110,20 @@ class Day16(BaseAdventDay[Graph]):
 
         for k, i, j in permutations(input.nodes, 3):
             dist[i, j] = min(dist[i, j], dist[i, k] + dist[k, j])
-
-        return self._visit(start, dist, 30)
-
-    def _run_2(self, input: Graph):
-        pass
+        return dist
 
     def _visit(
-        self, state: State, dist: dict[tuple[str, str], int], max_time: int
-    ) -> int:
-        if state.t == max_time or not state.remaining:
-            return state.current_best
+        self,
+        state: State,
+        dist: DistanceMatrix,
+        max_time: int,
+        res: dict[frozenset[Node], int],
+    ) -> dict[frozenset[Node], int]:
+        res[state.opened] = max(res.get(state.opened, 0), state.current_best)
 
-        ns: list[int] = []
+        if state.t == max_time or not state.remaining:
+            return res
+
         cur = state.pos
         for adj in state.remaining:
             next_t = state.t + dist[cur, adj.name] + 1
@@ -111,6 +137,6 @@ class Day16(BaseAdventDay[Graph]):
                 t=next_t,
                 current_best=state.current_best + (max_time - next_t) * adj.rate,
             )
-            ns.append(self._visit(next_state, dist, max_time))
+            self._visit(next_state, dist, max_time, res)
 
-        return max(ns, default=0)
+        return res
