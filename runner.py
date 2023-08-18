@@ -31,22 +31,25 @@ def create_parser():
     return parser
 
 
-def main():
-    args = create_parser().parse_args()
-    day = args.day
+def _run(day, var, file):
     try:
-        cls = CLASSES[args.day]
-    except KeyError:
-        print("Module not yet implemented!")
+        cls = CLASSES[day]
+    except KeyError as e:
+        raise ValueError("Module not yet implemented!") from e
     else:
-        if args.file is None:
+        if file is None:
             input_folder = Path(__file__).parent / "inputs"
             file_path = input_folder / f"day{day}.txt"
         else:
-            file_path = Path(args.file)
-        res = cls(file_path).run(args.var)
-        print(f"Result for day {args.day}, variant {args.var}, is:")
-        print(res)
+            file_path = Path(file)
+        return cls(file_path).run(var)
+
+
+def main():
+    args = create_parser().parse_args()
+    res = _run(args.day, args.var, args.file)
+    print(f"Result for day {args.day}, variant {args.var}, is:")
+    print(res)
 
 
 if __name__ == "__main__":
