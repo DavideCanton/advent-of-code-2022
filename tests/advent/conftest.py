@@ -4,28 +4,28 @@ from typing import Any, ClassVar
 import pytest
 
 from advent import CLASSES
+from advent.common import Variant
 
 FOLDER = Path(__file__).parent.parent.parent / "inputs"
+type TestCase = tuple[Any, Any]
 
 
 class Base:
     DAY: ClassVar[int]
-    DATA: ClassVar[tuple[Any, Any]]
+    DATA: ClassVar[TestCase]
 
-    def __init_subclass__(cls) -> None:
-        params = [
-            pytest.param((var, test_case), id=f"var-{var}")
+    @staticmethod
+    def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
+        cls: type[Base] = metafunc.cls  # type: ignore
+
+        params: list[Any] = [
+            pytest.param(var, test_case, id=f"var-{var}")
             for var, test_case in enumerate(cls.DATA, start=1)
         ]
 
-        # define dynamic fixture from data
-        cls.test_cases = pytest.fixture(params=params)(cls._getter)  # type: ignore
+        metafunc.parametrize("variant, exp", params)
 
-    def _getter(self, request: Any):
-        return request.param
-
-    def test(self, test_cases: tuple[Any, Any]):
-        variant, exp = test_cases
+    def test(self, variant: Variant, exp: Any) -> None:
         day = self.DAY
         cls = CLASSES[day]
         file_path = FOLDER / f"day{day}.txt"
