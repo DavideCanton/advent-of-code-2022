@@ -1,12 +1,12 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Literal, TextIO
+from typing import Literal, TextIO, override
 
-from advent.common import SameComputationAdventDay
+from advent.common import SameComputationAdventDay, Variant
 
-Play = Literal["P", "R", "S"]
-OppChar = Literal["A", "B", "C"]
-YourChar = Literal["X", "Y", "Z"]
+type Play = Literal["P", "R", "S"]
+type OppChar = Literal["A", "B", "C"]
+type YourChar = Literal["X", "Y", "Z"]
 
 P: list[Play] = list("RPS")  # type: ignore
 OPPONENT: dict[OppChar, Play] = dict(zip("ABC", P))  # type: ignore
@@ -54,20 +54,27 @@ class Result2(Base):
                 return LOSES[io]
 
 
-Input = list[list[str]]
+type InputRow = tuple[OppChar, YourChar]
+Input = list[InputRow]
 
 
 @dataclass
 class Day2(SameComputationAdventDay[Input]):
-    day = 2
+    @override
+    def parse_input(self, input: TextIO) -> list[InputRow]:
+        ret: list[InputRow] = []
+        o: OppChar
+        y: YourChar
+        for r in input:
+            o, y = r.strip().split()  # type: ignore
+            ret.append((o, y))
+        return ret
 
-    def parse_input(self, input: TextIO) -> Input:
-        return [r.strip().split() for r in input]
-
-    def compute(self, variant: int, rows: Input) -> int:
-        if variant == 1:
+    @override
+    def compute(self, var: Variant, input: Input) -> int:
+        if var == 1:
             fn = Result1()
         else:
             fn = Result2()
 
-        return sum(fn(*r) for r in rows)  # type: ignore
+        return sum(fn(*r) for r in input)

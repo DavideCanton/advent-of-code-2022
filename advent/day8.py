@@ -4,41 +4,42 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import reduce
 from operator import itemgetter, mul
-from typing import TextIO
+from typing import TextIO, override
 
 from advent.common import BaseAdventDay
 
-Matrix = list[list[int]]
+type Matrix = list[list[int]]
 Grid = tuple[Matrix, Matrix]
 
 
 @dataclass
 class Day8(BaseAdventDay[Grid]):
-    day = 8
-
+    @override
     def parse_input(self, input: TextIO) -> Grid:
         by_row = [list(map(int, line.strip())) for line in input]
         by_col = list(map(list, zip(*by_row)))
         return by_row, by_col
 
-    def _run_1(self, grid: Grid) -> int:
-        r = len(grid[0])
-        c = len(grid[1])
+    @override
+    def _run_1(self, input: Grid) -> int:
+        r = len(input[0])
+        c = len(input[1])
         edges = 2 * r + 2 * (c - 2)
         return (
             sum(
-                int(any(x is None for (_, x) in self._blocked(grid, i, j)))
+                int(any(x is None for (_, x) in self._blocked(input, i, j)))
                 for i in range(1, r - 1)
                 for j in range(1, c - 1)
             )
             + edges
         )
 
-    def _run_2(self, grid: Grid) -> int:
-        r = len(grid[0])
-        c = len(grid[1])
+    @override
+    def _run_2(self, input: Grid) -> int:
+        r = len(input[0])
+        c = len(input[1])
         return max(
-            self._score(grid, i, j) for i in range(1, r - 1) for j in range(1, c - 1)
+            self._score(input, i, j) for i in range(1, r - 1) for j in range(1, c - 1)
         )
 
     def _score(self, grid: Grid, i: int, j: int) -> int:

@@ -5,11 +5,11 @@ from collections import Counter, deque
 from dataclasses import dataclass
 from math import lcm
 from operator import add, mul
-from typing import Callable, Literal, TextIO, TypedDict, cast
+from typing import Callable, Literal, TextIO, TypedDict, cast, override
 
-from advent.common import SameComputationAdventDay
+from advent.common import SameComputationAdventDay, Variant
 
-Old = Literal["old"]
+type Old = Literal["old"]
 
 
 @dataclass
@@ -68,33 +68,33 @@ class GroupDict(TypedDict):
 
 
 @dataclass
-class Day11(SameComputationAdventDay):
-    day = 11
-
+class Day11(SameComputationAdventDay[list[GroupDict]]):
+    @override
     def parse_input(self, input: TextIO) -> list[GroupDict]:
         return [
             cast(GroupDict, match.groupdict())
             for match in MONKEY_REGEX.finditer(input.read())
         ]
 
-    def compute(self, var, groups: list[GroupDict]) -> int:
+    @override
+    def compute(self, var: Variant, input: list[GroupDict]) -> int:
         if var == 1:
             rounds = 20
 
-            def post_op(x):
+            def post_op(x: int) -> int:
                 return x // 3
 
         else:
             rounds = 10_000
-            total = lcm(*(int(g["den"]) for g in groups))
+            total = lcm(*(int(g["den"]) for g in input))
 
-            def post_op(x):
+            def post_op(x: int) -> int:
                 return x % total
 
-        monkey_list = [self._parse(g, post_op) for g in groups]
+        monkey_list = [self._parse(g, post_op) for g in input]
         monkeys: dict[int, Monkey] = {m.id: m for m in monkey_list}
 
-        counter = Counter()
+        counter: Counter[int] = Counter()
         for _ in range(rounds):
             for monkey in monkeys.values():
                 monkey.do_turn(counter, monkeys)

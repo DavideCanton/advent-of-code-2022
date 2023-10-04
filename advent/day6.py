@@ -1,19 +1,19 @@
 from collections import deque
 from dataclasses import dataclass
-from typing import TextIO
+from typing import TextIO, override
 
-from advent.common import SameComputationAdventDay
+from advent.common import SameComputationAdventDay, Variant
 
 
 @dataclass
 class Day6(SameComputationAdventDay[str]):
-    day = 6
-
+    @override
     def parse_input(self, input: TextIO) -> str:
         return input.read()
 
-    def compute(self, variant: int, input: str) -> int:
-        if variant == 1:
+    @override
+    def compute(self, var: Variant, input: str) -> int:
+        if var == 1:
             marker_len = 4
         else:
             marker_len = 14

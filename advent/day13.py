@@ -3,11 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import total_ordering
 from itertools import chain
-from typing import TextIO
+from typing import TextIO, override
 
 from advent.common import BaseAdventDay
 
-PacketElement = int | list["PacketElement"]
+type PacketElement = int | list["PacketElement"]
 
 
 @dataclass(order=False, eq=True)
@@ -57,8 +57,7 @@ Input = list[tuple[Packet, Packet]]
 
 @dataclass
 class Day13(BaseAdventDay[Input]):
-    day = 13
-
+    @override
     def parse_input(self, input: TextIO) -> Input:
         lists: list[Packet] = []
         output: Input = []
@@ -68,14 +67,16 @@ class Day13(BaseAdventDay[Input]):
                 continue
             lists.append(Packet.from_line(line))
             if len(lists) == 2:
-                output.append(tuple(lists))
+                output.append(tuple(lists))  # type: ignore
                 lists.clear()
 
         return output
 
+    @override
     def _run_1(self, input: Input):
         return sum(i for i, (p1, p2) in enumerate(input, start=1) if p1 < p2)
 
+    @override
     def _run_2(self, input: Input):
         div1 = Packet([[2]])
         div2 = Packet([[6]])

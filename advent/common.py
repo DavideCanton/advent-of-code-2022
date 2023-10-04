@@ -1,31 +1,37 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Generic, TextIO, TypeVar
+from typing import Literal, Protocol, TextIO, override
 
-_I = TypeVar("_I")
+
+class ResultProtocol(Protocol):
+    def __str__(self) -> str:
+        ...
+
+
+type Variant = Literal[1, 2]
 
 
 @dataclass
-class BaseAdventDay(Generic[_I], metaclass=ABCMeta):
+class BaseAdventDay[T](metaclass=ABCMeta):
     input_file: Path
 
     def load_input(self) -> TextIO:
         return self.input_file.open()
 
     @abstractmethod
-    def parse_input(self, input: TextIO) -> _I:
+    def parse_input(self, input: TextIO) -> T:
         pass
 
     @abstractmethod
-    def _run_1(self, input: _I):
+    def _run_1(self, input: T) -> ResultProtocol:
         pass
 
     @abstractmethod
-    def _run_2(self, input: _I):
+    def _run_2(self, input: T) -> ResultProtocol:
         pass
 
-    def run(self, variant: int) -> Any:
+    def run(self, variant: Variant) -> ResultProtocol:
         with self.load_input() as input:
             input = self.parse_input(input)
 
@@ -34,22 +40,21 @@ class BaseAdventDay(Generic[_I], metaclass=ABCMeta):
                 return self._run_1(input)
             case 2:
                 return self._run_2(input)
-            # should never happen, validated by the parser
-            case _ as v:
-                raise ValueError(f"Unsupported variant: {v}")
 
 
 @dataclass
-class SameComputationAdventDay(BaseAdventDay[_I], metaclass=ABCMeta):
+class SameComputationAdventDay[T](BaseAdventDay[T], metaclass=ABCMeta):
     @abstractmethod
-    def compute(self, var: int, input: _I):
+    def compute(self, var: Variant, input: T) -> ResultProtocol:
         pass
 
-    def _run_1(self, input: _I):
+    @override
+    def _run_1(self, input: T) -> ResultProtocol:
         return self._common_run(1, input)
 
-    def _run_2(self, input: _I):
+    @override
+    def _run_2(self, input: T) -> ResultProtocol:
         return self._common_run(2, input)
 
-    def _common_run(self, variant: int, input: _I):
+    def _common_run(self, variant: Variant, input: T) -> ResultProtocol:
         return self.compute(variant, input)

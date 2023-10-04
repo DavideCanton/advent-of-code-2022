@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, Literal, TextIO
+from typing import Iterable, Literal, TextIO, override
 
-from advent.common import SameComputationAdventDay
+from advent.common import SameComputationAdventDay, Variant
 
-Move = Literal["U", "D", "L", "R"]
+type Move = Literal["U", "D", "L", "R"]
+type Pos = tuple[int, int]
 Moves = list[tuple[Move, int]]
-Pos = tuple[int, int]
 
 
 def components(p: Pos) -> Iterable[Pos]:
@@ -23,25 +23,25 @@ def components(p: Pos) -> Iterable[Pos]:
 
 @dataclass
 class Day9(SameComputationAdventDay[Moves]):
-    day = 9
-
+    @override
     def parse_input(self, input: TextIO) -> Moves:
-        moves = []
+        moves: list[tuple[Move, int]] = []
         for line in input:
             line = line.strip().split()
             assert len(line) == 2
-            move, amount = line
-            moves.append((move, int(amount)))
+            move: Move = line[0]  # type: ignore
+            moves.append((move, int(line[1])))
 
         return moves
 
-    def compute(self, var, moves):
+    @override
+    def compute(self, var: Variant, input: Moves):
         body_size = 2 if var == 1 else 10
 
         positions: list[Pos] = [(0, 0)] * body_size
-        visited = set()
+        visited: set[Pos] = set()
 
-        for move in moves:
+        for move in input:
             for _ in range(move[1]):
                 positions[0] = self._move(positions[0], move[0])
                 for i in range(1, len(positions)):
@@ -61,8 +61,6 @@ class Day9(SameComputationAdventDay[Moves]):
                 return (x, y - 1)
             case "D":
                 return (x, y + 1)
-            case _ as m:
-                raise ValueError(f"Invalid move: {m}")
 
     def _fix(self, cur: Pos, next: Pos) -> Pos:
         dist = (next[0] - cur[0], next[1] - cur[1])
@@ -82,6 +80,8 @@ class Day9(SameComputationAdventDay[Moves]):
                     moves.append("U")
                 case (0, y) if y < 0:
                     moves.append("D")
+                case _:
+                    pass
 
         for m in moves:
             next = self._move(next, m)

@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from itertools import permutations, product
-from typing import TextIO
+from typing import TextIO, override
 
 from advent.common import BaseAdventDay
 
@@ -50,12 +50,11 @@ DistanceMatrix = dict[tuple[str, str], int]
 
 @dataclass
 class Day16(BaseAdventDay[Graph]):
-    day = 16
-
     REGEX = re.compile(
         r"Valve (\w+) has flow rate=(\d+); tunnels? leads? to valves? (.+)"
     )
 
+    @override
     def parse_input(self, input: TextIO) -> Graph:
         graph = Graph()
 
@@ -71,6 +70,7 @@ class Day16(BaseAdventDay[Graph]):
         graph.check()
         return graph
 
+    @override
     def _run_1(self, input: Graph):
         start = State(
             opened=frozenset(),
@@ -84,6 +84,7 @@ class Day16(BaseAdventDay[Graph]):
         ans = self._visit(start, dist, 30, {})
         return max(ans.values())
 
+    @override
     def _run_2(self, input: Graph):
         dist = self._compute_distance_matrix(input)
         start_valve = "AA"

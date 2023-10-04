@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import importlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .common import BaseAdventDay
 
-CLASSES: dict[int, type[BaseAdventDay]] = {}
+CLASSES: dict[int, type[BaseAdventDay[Any]]] = {}
 
 
 def _init():

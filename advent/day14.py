@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum, auto
 from itertools import pairwise
-from typing import Iterable, TextIO
+from typing import Iterable, TextIO, override
 
 from advent.common import BaseAdventDay
 
@@ -19,8 +19,8 @@ class CellType(Enum):
 class Path:
     all_pos: frozenset[Pos]
 
-    def __init__(self, pos: Iterable[Pos]):
-        all_pos = set()
+    def __init__(self, pos: Iterable[Pos]) -> None:
+        all_pos: set[Pos] = set()
 
         for p1, p2 in pairwise(pos):
             if p1[0] == p2[0]:
@@ -93,7 +93,7 @@ class Board:
                 return new
         return None
 
-    def _is_blocked(self, pos):
+    def _is_blocked(self, pos: Pos) -> bool:
         cell = self.blocked.get(pos)
         if cell is None:
             if wall_present := any(pos in p for p in self.paths):
@@ -106,23 +106,24 @@ class Board:
 
 @dataclass
 class Day14(BaseAdventDay[Board]):
-    day = 14
-
+    @override
     def parse_input(self, input: TextIO) -> Board:
-        output = []
+        output: list[Path] = []
         for line in input:
             parts = line.split("->")
-            pos = []
+            pos: list[Pos] = []
             for p in parts:
                 p = p.strip().split(",")
                 assert len(p) == 2
-                pos.append(tuple(map(int, p)))
+                pos.append(tuple(map(int, p)))  # type: ignore
             output.append(Path(tuple(pos)))
 
         return Board(output)
 
+    @override
     def _run_1(self, input: Board):
         return input.simulate()
 
+    @override
     def _run_2(self, input: Board):
         return input.simulate(2)

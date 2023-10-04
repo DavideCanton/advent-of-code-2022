@@ -2,4 +2,9 @@
 select = ["E", "F", "B", "I"]
 line-length = 100
 ignore = ["B905"]
-target-version = "py311"
+target-version = "py312"
+
+[tool.pyright]
+reportMissingImports = true
+reportMissingTypeStubs = false
+pythonVersion = "3.12"

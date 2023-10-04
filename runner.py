@@ -1,9 +1,11 @@
 import argparse
 from pathlib import Path
+from typing import Literal
 
 import pdbp  # noqa: F401
 
 from advent import CLASSES
+from advent.common import ResultProtocol
 
 
 def create_parser():
@@ -31,7 +33,7 @@ def create_parser():
     return parser
 
 
-def _run(day, var, file):
+def _run(day: int, var: Literal[1, 2], file: str | None) -> ResultProtocol:
     try:
         cls = CLASSES[day]
     except KeyError as e:
@@ -45,7 +47,7 @@ def _run(day, var, file):
         return cls(file_path).run(var)
 
 
-def main():
+def main() -> None:
     args = create_parser().parse_args()
     res = _run(args.day, args.var, args.file)
     print(f"Result for day {args.day}, variant {args.var}, is:")

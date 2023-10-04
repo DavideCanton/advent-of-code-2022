@@ -1,7 +1,7 @@
 import itertools as it
 from dataclasses import dataclass
 from functools import cache, reduce
-from typing import TextIO
+from typing import TextIO, override
 
 from advent.common import BaseAdventDay
 
@@ -10,9 +10,7 @@ cached_ord = cache(ord)
 
 @dataclass
 class Day3(BaseAdventDay[list[str]]):
-    day = 3
-
-    def get_score(self, letter) -> int:
+    def get_score(self, letter: str) -> int:
         o = ord(letter)
         if cached_ord("a") <= o <= cached_ord("z"):
             return o - cached_ord("a") + 1
@@ -21,26 +19,25 @@ class Day3(BaseAdventDay[list[str]]):
         else:
             raise ValueError(f"Invalid letter {letter}")
 
+    @override
     def parse_input(self, input: TextIO) -> list[str]:
         return [row.strip() for row in input]
 
-    def _run_1(self, rows: list[str]) -> int:
-        def process_row(row):
+    @override
+    def _run_1(self, input: list[str]) -> int:
+        def process_row(row: str):
             half = len(row) // 2
             left, right = row[:half], row[half:]
             return frozenset(left) & frozenset(right)
 
-        return sum(max(self.get_score(c) for c in process_row(r)) for r in rows)
+        return sum(max(self.get_score(c) for c in process_row(r)) for r in input)
 
-    def _run_2(self, rows: list[str]) -> int:
+    @override
+    def _run_2(self, input: list[str]) -> int:
         tot = 0
-        for i in it.count():
-            start = 3 * i
-            if start >= len(rows):
-                break
-            group = rows[start : start + 3]
-            ret = reduce(frozenset.__and__, map(frozenset, group))
+        for group in it.batched(input, 3):
+            ret = reduce(set[str].__and__, map(set, group))
             assert ret
-            badge = next(iter(ret))
+            badge = ret.pop()
             tot += self.get_score(badge)
         return tot

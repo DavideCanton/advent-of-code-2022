@@ -1,8 +1,9 @@
+import itertools as it
 import re
 from dataclasses import dataclass
-from typing import TextIO
+from typing import TextIO, override
 
-from advent.common import SameComputationAdventDay
+from advent.common import SameComputationAdventDay, Variant
 
 
 @dataclass
@@ -23,16 +24,16 @@ class Input:
 
 @dataclass
 class Day5(SameComputationAdventDay[Input]):
-    day = 5
-
+    @override
     def parse_input(self, input: TextIO) -> Input:
         crates = self._load_crates(input)
         moves = self._load_moves(input)
 
         return Input(crates, moves)
 
-    def compute(self, variant: int, input: Input):
-        if variant == 1:
+    @override
+    def compute(self, var: Variant, input: Input):
+        if var == 1:
             apply_fn = self._apply_1
         else:
             apply_fn = self._apply_2
@@ -62,21 +63,22 @@ class Day5(SameComputationAdventDay[Input]):
             buffer.append(row)
 
         keys = buffer.pop().split()
-        crates = {k: [] for k in keys}
+        crates: dict[str, list[str]] = {k: [] for k in keys}
 
         while buffer:
             row = buffer.pop()
-            for i in range(0, len(row), 4):
-                part = row[i : i + 3]
+            for i, part in enumerate(it.batched(row, 4)):
                 if part[0] == "[":
-                    crates[keys[i // 4]].append(part[1])
+                    crates[keys[i]].append(part[1])
 
         return crates
 
     def _load_moves(self, input: TextIO) -> list[Move]:
         regex = re.compile(r"^move (\d+) from (\w+) to (\w+)$")
-        moves = []
+        moves: list[Move] = []
         for row in input:
-            target, from_, to = regex.match(row.strip()).groups()  # type: ignore
+            match = regex.match(row.strip())
+            assert match
+            target, from_, to = match.groups()
             moves.append(Move(int(target), from_, to))
         return moves

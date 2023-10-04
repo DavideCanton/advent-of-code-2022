@@ -1,13 +1,12 @@
 from dataclasses import dataclass
-from typing import TextIO
+from typing import TextIO, override
 
 from advent.common import BaseAdventDay
 
 
 @dataclass
 class Day1(BaseAdventDay[list[int]]):
-    day = 1
-
+    @override
     def parse_input(self, input: TextIO) -> list[int]:
         calories = [0]
         for line in input:
@@ -18,8 +17,10 @@ class Day1(BaseAdventDay[list[int]]):
                 calories.append(0)
         return calories
 
-    def _run_1(self, calories: list[int]):
-        return max(calories)
+    @override
+    def _run_1(self, input: list[int]) -> int:
+        return max(input)
 
-    def _run_2(self, calories: list[int]):
-        return sum(sorted(calories, reverse=True)[:3])
+    @override
+    def _run_2(self, input: list[int]) -> int:
+        return sum(sorted(input, reverse=True)[:3])

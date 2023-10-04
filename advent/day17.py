@@ -4,7 +4,7 @@ from functools import cached_property
 from itertools import cycle
 from typing import TextIO
 
-from advent.common import BaseAdventDay
+from advent.common import BaseAdventDay, override
 
 PRINT = False
 
@@ -46,10 +46,9 @@ PIECES = [
 
 @dataclass
 class Day17(BaseAdventDay[list[Direction]]):
-    day = 17
-
+    @override
     def parse_input(self, input: TextIO) -> list[Direction]:
-        def _tr(c):
+        def _tr(c: str) -> Direction:
             match c:
                 case ">":
                     return Direction.Right
@@ -60,6 +59,7 @@ class Day17(BaseAdventDay[list[Direction]]):
 
         return [_tr(c) for line in input for c in line.strip()]
 
+    @override
     def _run_1(self, input: list[Direction]):
         w = 7
         board = [[False] * w]

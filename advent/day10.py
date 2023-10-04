@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar, TextIO
+from typing import Any, ClassVar, TextIO, override
 
 from advent.common import BaseAdventDay
 
@@ -25,7 +25,7 @@ class Instr(metaclass=ABCMeta):
 
     @classmethod
     @abstractmethod
-    def _parse(cls, line) -> Instr:
+    def _parse(cls, *args: Any) -> Instr:
         pass
 
     @abstractmethod
@@ -40,7 +40,9 @@ class AddX(Instr):
     amount: int
 
     @classmethod
-    def _parse(cls, amount, *a) -> AddX:
+    def _parse(  # pyright: ignore[reportIncompatibleMethodOverride]
+        cls, amount: int
+    ) -> AddX:
         return AddX(int(amount))
 
     def apply(self, x: int) -> int:
@@ -53,7 +55,7 @@ class NoOp(Instr):
     NAME = "noop"
 
     @classmethod
-    def _parse(cls, *a) -> NoOp:
+    def _parse(cls) -> NoOp:  # pyright: ignore[reportIncompatibleMethodOverride]
         return NoOp()
 
     def apply(self, x: int) -> int:
@@ -62,11 +64,11 @@ class NoOp(Instr):
 
 @dataclass
 class Day10(BaseAdventDay[list[Instr]]):
-    day = 10
-
+    @override
     def parse_input(self, input: TextIO) -> list[Instr]:
         return [Instr.parse(line) for line in input]
 
+    @override
     def _run_1(self, input: list[Instr]) -> int:
         x = 1
         cycles = 1
@@ -91,11 +93,12 @@ class Day10(BaseAdventDay[list[Instr]]):
 
         return strength
 
+    @override
     def _run_2(self, input: list[Instr]) -> str:
         x = 1
         cycles = 0
         line = 40
-        buf = []
+        buf: list[list[str]] = []
 
         for instr in input:
             for c in range(cycles, cycles + instr.CYCLES):

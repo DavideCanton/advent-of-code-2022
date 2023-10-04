@@ -21,10 +21,10 @@ class Base:
         # define dynamic fixture from data
         cls.test_cases = pytest.fixture(params=params)(cls._getter)  # type: ignore
 
-    def _getter(self, request):
+    def _getter(self, request: Any):
         return request.param
 
-    def test(self, test_cases):
+    def test(self, test_cases: tuple[Any, Any]):
         variant, exp = test_cases
         day = self.DAY
         cls = CLASSES[day]

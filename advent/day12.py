@@ -4,12 +4,12 @@ import heapq as hq
 from collections import defaultdict
 from dataclasses import dataclass, field
 from functools import total_ordering
-from typing import NamedTuple, TextIO
+from typing import DefaultDict, NamedTuple, TextIO, override
 
 from advent.common import BaseAdventDay
 
-Node = tuple[int, int]
-Graph = dict[Node, tuple[tuple[Node, int]]]
+type Node = tuple[int, int]
+type Graph = dict[Node, tuple[tuple[Node, int], ...]]
 
 
 class Input(NamedTuple):
@@ -28,11 +28,11 @@ class HeapNode:
     node: Node
     valid: bool = field(init=False, default=True)
 
-    def __eq__(self, other):
-        return self.dist == other.dist
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, HeapNode) and self.dist == other.dist
 
-    def __lt__(self, other):
-        return self.dist < other.dist
+    def __lt__(self, other: object) -> bool:
+        return isinstance(other, HeapNode) and self.dist < other.dist
 
 
 class HeapQueue:
@@ -68,10 +68,9 @@ class HeapQueue:
 
 @dataclass
 class Day12(BaseAdventDay[Input]):
-    day = 12
-
+    @override
     def parse_input(self, input: TextIO) -> Input:
-        def _score(c):
+        def _score(c: str) -> int:
             return ord(c) - 97
 
         matrix = [[c for c in line.strip()] for line in input]
@@ -93,7 +92,7 @@ class Day12(BaseAdventDay[Input]):
                     matrix[i][j] = "z"
                     goal = cur
 
-        graph = defaultdict(list)
+        graph: DefaultDict[Node, list[tuple[Node, int]]] = defaultdict(list)
 
         for i, row in enumerate(matrix):
             for j, c in enumerate(row):
@@ -101,7 +100,7 @@ class Day12(BaseAdventDay[Input]):
                 cur_score = _score(c)
                 scores[cur] = cur_score
 
-                candidates = []
+                candidates: list[Node] = []
                 if i > 0:
                     candidates.append((i - 1, j))
                 if i < rows - 1:
@@ -124,10 +123,10 @@ class Day12(BaseAdventDay[Input]):
         )
 
     def _find_path(self, start: Node, graph: Graph) -> dict[Node, int]:
-        dist: dict[Node, int] = defaultdict(lambda: _M)
-        queue = HeapQueue()
-
         _M = 99999
+        dist: dict[Node, int] = defaultdict(lambda: _M)
+
+        queue = HeapQueue()
         for n in graph:
             queue.push(n, _M)
         queue.push(start, 0)
@@ -149,12 +148,14 @@ class Day12(BaseAdventDay[Input]):
 
         return dist
 
-    def _run_1(self, input: Input):
+    @override
+    def _run_1(self, input: Input) -> int:
         res = self._find_path(input.goal, input.graph)
         assert res is not None
         return res[input.start]
 
-    def _run_2(self, input: Input):
+    @override
+    def _run_2(self, input: Input) -> int:
         r = self._find_path(input.goal, input.graph)
         a = {r[n] for n, e in input.elevations.items() if e == 0}
 

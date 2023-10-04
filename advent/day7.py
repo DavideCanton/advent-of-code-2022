@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import cached_property
-from typing import TextIO, TypeGuard
+from typing import TextIO, TypeGuard, override
 
 from advent.common import BaseAdventDay
 
@@ -61,7 +61,7 @@ class Dir(Entry):
         self._invalidate_caches()
         return file
 
-    @cached_property
+    @cached_property  # pyright: ignore [reportIncompatibleMethodOverride]
     def size(self) -> int:
         return sum(e.size for e in self.children.values())
 
@@ -70,7 +70,7 @@ class Dir(Entry):
         for e in self.children.values():
             yield from e.list_dirs()
 
-    def _check_child(self, name):
+    def _check_child(self, name: str):
         if name in self.children:
             raise ValueError(f"Directory {self.name} has already a child named {name}")
 
@@ -82,9 +82,8 @@ class Dir(Entry):
 
 
 @dataclass
-class Day7(BaseAdventDay):
-    day = 7
-
+class Day7(BaseAdventDay[Dir]):
+    @override
     def parse_input(self, input: TextIO) -> Dir:
         root = Dir.root()
         cur = None
@@ -97,7 +96,7 @@ class Day7(BaseAdventDay):
             assert self._is_command(command)
             command = command[1:].strip()
 
-            output = []
+            output: list[str] = []
             if command == "ls":
                 while True:
                     row = next(it, end_of_file)
@@ -115,16 +114,18 @@ class Day7(BaseAdventDay):
 
         return root
 
-    def _run_1(self, root: Dir) -> int:
-        return sum(d.size for d in root.list_dirs() if d.size <= 100000)
+    @override
+    def _run_1(self, input: Dir) -> int:
+        return sum(d.size for d in input.list_dirs() if d.size <= 100000)
 
-    def _run_2(self, root: Dir) -> int:
-        total_space = 70000000
-        free_space = total_space - root.size
-        to_clean = 30000000 - free_space
+    @override
+    def _run_2(self, input: Dir) -> int:
+        total_space = 70_000_000
+        free_space = total_space - input.size
+        to_clean = 30_000_000 - free_space
 
         return min(
-            (d for d in root.list_dirs() if d.size >= to_clean), key=lambda d: d.size
+            (d for d in input.list_dirs() if d.size >= to_clean), key=lambda d: d.size
         ).size
 
     def _apply_command(
@@ -159,6 +160,8 @@ class Day7(BaseAdventDay):
                 cur.child(dir_name)
             case [size, file_name]:
                 cur.file(file_name, int(size))
+            case _:
+                raise ValueError(line)
 
     def _is_command(self, row: str | object) -> TypeGuard[str]:
         return isinstance(row, str) and row[0] == "$"

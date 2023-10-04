@@ -6,11 +6,11 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property, lru_cache
 from itertools import combinations
-from typing import ClassVar, TextIO
+from typing import ClassVar, TextIO, override
 
 from advent.common import BaseAdventDay
 
-Pos = tuple[int, int]
+type Pos = tuple[int, int]
 
 
 @dataclass(order=True, repr=False)
@@ -37,7 +37,7 @@ class Sensor:
     sensor: Pos
     beacon: Pos
 
-    REGEX: ClassVar[re.Pattern] = re.compile(
+    REGEX: ClassVar[re.Pattern[str]] = re.compile(
         r"Sensor at x=(-?\d+), y=(-?\d+): closest beacon is at x=(-?\d+), y=(-?\d+)"
     )
 
@@ -55,19 +55,20 @@ class Sensor:
 
 @dataclass
 class Day15(BaseAdventDay[list[Sensor]]):
-    day = 15
-
+    @override
     def parse_input(self, input: TextIO) -> list[Sensor]:
         return [Sensor.parse(row) for row in input]
 
+    @override
     def _run_1(self, input: list[Sensor]) -> int:
-        target = 2000000
+        target = 2_000_000
         covered, beacons = self._covered_row(input, target)
         return sum(r.cells_inside for r in covered) - len(beacons)
 
-    def _run_2(self, input: list[Sensor]):
-        target = 4000000
-        freq = 4000000
+    @override
+    def _run_2(self, input: list[Sensor]) -> int | None:
+        target = 4_000_000
+        freq = 4_000_000
 
         for s1, s2 in combinations(input, 2):
             for (x1, y1), (x2, y2) in _border_bounds(s1):
@@ -99,7 +100,7 @@ class Day15(BaseAdventDay[list[Sensor]]):
         to: int | None = None,
     ) -> tuple[list[Range], set[int]]:
         covered: list[Range] = []
-        beacons = set()
+        beacons: set[int] = set()
 
         get_from = _getter(from_, max)
         get_to = _getter(to, min)
@@ -167,5 +168,5 @@ def _border_bounds(s: Sensor) -> tuple[tuple[Pos, Pos], ...]:
     return ((u, l), (u, r), (d, l), (d, r))
 
 
-def _det(a, b, c, d):
+def _det(a: int, b: int, c: int, d: int) -> int:
     return a * d - b * c
