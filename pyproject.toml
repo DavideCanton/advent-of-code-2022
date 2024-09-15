@@ -1,8 +1,10 @@
 [tool.ruff]
-select = ["E", "F", "B", "I"]
 line-length = 100
-ignore = ["B905"]
 target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "I"]
+ignore = ["B905"]
 
 [tool.pyright]
 reportMissingImports = true
