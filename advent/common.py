@@ -5,8 +5,7 @@ from typing import Literal, Protocol, TextIO, override
 
 
 class ResultProtocol(Protocol):
-    def __str__(self) -> str:
-        ...
+    def __str__(self) -> str: ...
 
 
 type Variant = Literal[1, 2]

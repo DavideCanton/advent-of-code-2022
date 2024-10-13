@@ -71,10 +71,7 @@ class GroupDict(TypedDict):
 class Day11(SameComputationAdventDay[list[GroupDict]]):
     @override
     def parse_input(self, input: TextIO) -> list[GroupDict]:
-        return [
-            cast(GroupDict, match.groupdict())
-            for match in MONKEY_REGEX.finditer(input.read())
-        ]
+        return [cast(GroupDict, match.groupdict()) for match in MONKEY_REGEX.finditer(input.read())]
 
     @override
     def compute(self, var: Variant, input: list[GroupDict]) -> int:
@@ -107,9 +104,7 @@ class Day11(SameComputationAdventDay[list[GroupDict]]):
             return val if val == "old" else int(val)
 
         items_str = [
-            element
-            for element in group_dict["items"].replace(" ", "").split(",")
-            if element
+            element for element in group_dict["items"].replace(" ", "").split(",") if element
         ]
         items = deque(item for item in map(int, items_str))
 

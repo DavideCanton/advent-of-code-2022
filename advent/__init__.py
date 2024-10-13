@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from .common import BaseAdventDay
 
-CLASSES: dict[int, type[BaseAdventDay[Any]]] = {}
+_CLASSES: dict[int, type[BaseAdventDay[Any]]] = {}
 
 
 def _init():
@@ -14,9 +14,13 @@ def _init():
         try:
             mod = importlib.import_module(f"advent.day{i}")
             cls = getattr(mod, f"Day{i}")
-            CLASSES[i] = cls
+            _CLASSES[i] = cls
         except ImportError:
             pass
 
 
 _init()
+
+
+def get_handler_for_day(day: int) -> type[BaseAdventDay[Any]]:
+    return _CLASSES[day]

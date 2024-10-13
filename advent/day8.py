@@ -9,7 +9,7 @@ from typing import TextIO, override
 from advent.common import BaseAdventDay
 
 type Matrix = list[list[int]]
-Grid = tuple[Matrix, Matrix]
+type Grid = tuple[Matrix, Matrix]
 
 
 @dataclass
@@ -38,9 +38,7 @@ class Day8(BaseAdventDay[Grid]):
     def _run_2(self, input: Grid) -> int:
         r = len(input[0])
         c = len(input[1])
-        return max(
-            self._score(input, i, j) for i in range(1, r - 1) for j in range(1, c - 1)
-        )
+        return max(self._score(input, i, j) for i in range(1, r - 1) for j in range(1, c - 1))
 
     def _score(self, grid: Grid, i: int, j: int) -> int:
         bl = self._blocked(grid, i, j)

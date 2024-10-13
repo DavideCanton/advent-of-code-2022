@@ -1,16 +1,32 @@
 from line_profiler import LineProfiler
 
-from advent.day16 import Day16
-from runner import main
+from advent import common, get_handler_for_day
+from runner import _run
 
 profile = LineProfiler()
 
+day = 16
+variant: common.Variant = 1
+
+fns = []
+handler = get_handler_for_day(day)
+
+if variant == 1:
+    fns.append(handler._run_1)
+elif variant == 2:
+    fns.append(handler._run_2)
+
 # add functions to be profiled here
-fns = [Day16._run_1, Day16._visit]
-for f in fns:
-    if hasattr(f, "__wrapped__"):
-        f = f.__wrapped__
-    profile.add_function(f)
+
+for fn in fns:
+    if hasattr(fn, "__wrapped__"):
+        fn = fn.__wrapped__
+    profile.add_function(fn)
+
+
+def main():
+    _run(day, variant)
+
 
 profile.runcall(main)
 profile.print_stats()

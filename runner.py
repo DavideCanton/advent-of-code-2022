@@ -4,15 +4,15 @@ from typing import Literal
 import click
 import pdbp
 
-from advent import CLASSES
+from advent import get_handler_for_day
 from advent.common import ResultProtocol
 
 pdbp.enable()
 
 
-def _run(day: int, var: Literal[1, 2], file: Path | None) -> ResultProtocol:
+def _run(day: int, var: Literal[1, 2], file: Path | None = None) -> ResultProtocol:
     try:
-        cls = CLASSES[day]
+        cls = get_handler_for_day(day)
     except KeyError as e:
         raise ValueError("Module not yet implemented!") from e
     else:

@@ -82,8 +82,7 @@ class Day17(BaseAdventDay[list[Direction]]):
                 dir = next(dirs)
                 if dir == Direction.Left and x > 0:
                     if not any(
-                        v and board[y - yi][x - 1]
-                        for yi, v in enumerate(r[0] for r in rock.form)
+                        v and board[y - yi][x - 1] for yi, v in enumerate(r[0] for r in rock.form)
                     ):
                         x -= 1
                 elif dir == Direction.Right and x + rock.shape[1] < w:

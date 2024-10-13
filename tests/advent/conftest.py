@@ -3,7 +3,7 @@ from typing import Any, ClassVar
 
 import pytest
 
-from advent import CLASSES
+from advent import get_handler_for_day
 from advent.common import Variant
 
 FOLDER = Path(__file__).parent.parent.parent / "inputs"
@@ -27,7 +27,7 @@ class Base:
 
     def test(self, variant: Variant, exp: Any) -> None:
         day = self.DAY
-        cls = CLASSES[day]
+        cls = get_handler_for_day(day)
         file_path = FOLDER / f"day{day}.txt"
         res = cls(file_path).run(variant)
         assert res == exp

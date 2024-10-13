@@ -118,9 +118,7 @@ class Day12(BaseAdventDay[Input]):
         assert start is not None
         assert goal is not None
 
-        return Input(
-            start, goal, {k: tuple(v) for k, v in graph.items()}, scores, rows, cols
-        )
+        return Input(start, goal, {k: tuple(v) for k, v in graph.items()}, scores, rows, cols)
 
     def _find_path(self, start: Node, graph: Graph) -> dict[Node, int]:
         _M = 99999

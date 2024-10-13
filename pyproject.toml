@@ -9,4 +9,4 @@ ignore = ["B905"]
 [tool.pyright]
 reportMissingImports = true
 reportMissingTypeStubs = false
-pythonVersion = "3.12"
+pythonVersion = "3.13"

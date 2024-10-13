@@ -50,9 +50,7 @@ DistanceMatrix = dict[tuple[str, str], int]
 
 @dataclass
 class Day16(BaseAdventDay[Graph]):
-    REGEX = re.compile(
-        r"Valve (\w+) has flow rate=(\d+); tunnels? leads? to valves? (.+)"
-    )
+    REGEX = re.compile(r"Valve (\w+) has flow rate=(\d+); tunnels? leads? to valves? (.+)")
 
     @override
     def parse_input(self, input: TextIO) -> Graph:
@@ -98,9 +96,7 @@ class Day16(BaseAdventDay[Graph]):
         )
         ans = self._visit(start, dist, 26, {})
 
-        return max(
-            m1 + m2 for k1, m1 in ans.items() for k2, m2 in ans.items() if not k1 & k2
-        )
+        return max(m1 + m2 for k1, m1 in ans.items() for k2, m2 in ans.items() if not k1 & k2)
 
     def _compute_distance_matrix(self, input: Graph) -> DistanceMatrix:
         dist = {

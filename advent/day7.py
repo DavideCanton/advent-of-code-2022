@@ -15,12 +15,10 @@ class Entry(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def size(self) -> int:
-        ...
+    def size(self) -> int: ...
 
     @abstractmethod
-    def list_dirs(self) -> Iterable[Dir]:
-        ...
+    def list_dirs(self) -> Iterable[Dir]: ...
 
 
 @dataclass
@@ -61,8 +59,8 @@ class Dir(Entry):
         self._invalidate_caches()
         return file
 
-    @cached_property  # pyright: ignore [reportIncompatibleMethodOverride]
-    def size(self) -> int:
+    @cached_property
+    def size(self) -> int:  # pyright: ignore [reportIncompatibleMethodOverride]
         return sum(e.size for e in self.children.values())
 
     def list_dirs(self) -> Iterable[Dir]:
@@ -124,13 +122,9 @@ class Day7(BaseAdventDay[Dir]):
         free_space = total_space - input.size
         to_clean = 30_000_000 - free_space
 
-        return min(
-            (d for d in input.list_dirs() if d.size >= to_clean), key=lambda d: d.size
-        ).size
+        return min((d for d in input.list_dirs() if d.size >= to_clean), key=lambda d: d.size).size
 
-    def _apply_command(
-        self, command: str, output: list[str], cur: Dir | None, root: Dir
-    ) -> Dir:
+    def _apply_command(self, command: str, output: list[str], cur: Dir | None, root: Dir) -> Dir:
         match command.split():
             case ["ls"]:
                 assert cur is not None

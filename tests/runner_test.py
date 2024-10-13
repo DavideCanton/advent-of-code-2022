@@ -24,9 +24,7 @@ def test_defaults(mocked_run_check: Callable[..., None]) -> None:
 
 
 @pytest.mark.parametrize("full", (True, False))
-def test_valid(
-    mocked_run_check: Callable[..., None], full: bool, tmp_path: Path
-) -> None:
+def test_valid(mocked_run_check: Callable[..., None], full: bool, tmp_path: Path) -> None:
     tmp_file = tmp_path / "baz"
     tmp_file.touch()
     _run_check(["15", "2", "--file" if full else "-f", str(tmp_file)])
