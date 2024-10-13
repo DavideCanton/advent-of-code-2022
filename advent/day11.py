@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import re
 from collections import Counter, deque
+from collections.abc import Callable
 from dataclasses import dataclass
 from math import lcm
 from operator import add, mul
-from typing import Callable, Literal, TextIO, TypedDict, cast, override
+from typing import Literal, TextIO, TypedDict, cast, override
 
 from advent.common import SameComputationAdventDay, Variant
 

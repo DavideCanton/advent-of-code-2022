@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum, auto
 from itertools import pairwise
-from typing import Iterable, TextIO, override
+from typing import TextIO, override
 
 from advent.common import BaseAdventDay
 

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, Literal, TextIO, override
+from typing import Literal, TextIO, override
 
 from advent.common import SameComputationAdventDay, Variant
 
