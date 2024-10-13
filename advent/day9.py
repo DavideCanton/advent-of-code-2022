@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Literal, TextIO, override
+from typing import Literal, override
 
 from advent.common import SameComputationAdventDay, Variant
 
@@ -25,9 +25,9 @@ def components(p: Pos) -> Iterable[Pos]:
 @dataclass
 class Day9(SameComputationAdventDay[Moves]):
     @override
-    def parse_input(self, input: TextIO) -> Moves:
+    def parse_input(self) -> Moves:
         moves: list[tuple[Move, int]] = []
-        for line in input:
+        for line in self.input:
             line = line.strip().split()
             assert len(line) == 2
             move: Move = line[0]  # type: ignore

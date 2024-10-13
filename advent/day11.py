@@ -6,7 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from math import lcm
 from operator import add, mul
-from typing import Literal, TextIO, TypedDict, cast, override
+from typing import Literal, TypedDict, cast, override
 
 from advent.common import SameComputationAdventDay, Variant
 
@@ -71,8 +71,10 @@ class GroupDict(TypedDict):
 @dataclass
 class Day11(SameComputationAdventDay[list[GroupDict]]):
     @override
-    def parse_input(self, input: TextIO) -> list[GroupDict]:
-        return [cast(GroupDict, match.groupdict()) for match in MONKEY_REGEX.finditer(input.read())]
+    def parse_input(self) -> list[GroupDict]:
+        return [
+            cast(GroupDict, match.groupdict()) for match in MONKEY_REGEX.finditer(self.input.read())
+        ]
 
     @override
     def compute(self, var: Variant, input: list[GroupDict]) -> int:

@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from itertools import permutations, product
-from typing import TextIO, override
+from typing import override
 
 from advent.common import BaseAdventDay
 
@@ -53,10 +53,10 @@ class Day16(BaseAdventDay[Graph]):
     REGEX = re.compile(r"Valve (\w+) has flow rate=(\d+); tunnels? leads? to valves? (.+)")
 
     @override
-    def parse_input(self, input: TextIO) -> Graph:
+    def parse_input(self) -> Graph:
         graph = Graph()
 
-        for line in input:
+        for line in self.input:
             if (match := self.REGEX.match(line)) is None:
                 continue
 

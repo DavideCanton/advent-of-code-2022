@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import cached_property
-from typing import TextIO, TypeGuard, override
+from typing import TypeIs, override
 
 from advent.common import BaseAdventDay
 
@@ -85,10 +85,10 @@ class Dir(Entry):
 @dataclass
 class Day7(BaseAdventDay[Dir]):
     @override
-    def parse_input(self, input: TextIO) -> Dir:
+    def parse_input(self) -> Dir:
         root = Dir.root()
         cur = None
-        it = iter(input)  # type: ignore
+        it = iter(self.input)
 
         end_of_file = object()
         command = next(it, end_of_file)
@@ -160,5 +160,5 @@ class Day7(BaseAdventDay[Dir]):
             case _:
                 raise ValueError(line)
 
-    def _is_command(self, row: str | object) -> TypeGuard[str]:
+    def _is_command(self, row: str | object) -> TypeIs[str]:
         return isinstance(row, str) and row[0] == "$"

@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Literal, Protocol, TextIO, override
 
 
@@ -14,13 +13,10 @@ type Variant = Literal[1, 2]
 
 @dataclass
 class BaseAdventDay[T](metaclass=ABCMeta):
-    input_file: Path
-
-    def load_input(self) -> TextIO:
-        return self.input_file.open()
+    input: TextIO
 
     @abstractmethod
-    def parse_input(self, input: TextIO) -> T:
+    def parse_input(self) -> T:
         pass
 
     @abstractmethod
@@ -32,8 +28,7 @@ class BaseAdventDay[T](metaclass=ABCMeta):
         pass
 
     def run(self, variant: Variant) -> ResultProtocol:
-        with self.load_input() as input:
-            input = self.parse_input(input)
+        input = self.parse_input()
 
         match variant:
             case 1:

@@ -4,7 +4,7 @@ import heapq as hq
 from collections import defaultdict
 from dataclasses import dataclass, field
 from functools import total_ordering
-from typing import DefaultDict, NamedTuple, TextIO, override
+from typing import DefaultDict, NamedTuple, override
 
 from advent.common import BaseAdventDay
 
@@ -28,6 +28,7 @@ class HeapNode:
     node: Node
     valid: bool = field(init=False, default=True)
 
+    @override
     def __eq__(self, other: object) -> bool:
         return isinstance(other, HeapNode) and self.dist == other.dist
 
@@ -69,11 +70,11 @@ class HeapQueue:
 @dataclass
 class Day12(BaseAdventDay[Input]):
     @override
-    def parse_input(self, input: TextIO) -> Input:
+    def parse_input(self) -> Input:
         def _score(c: str) -> int:
             return ord(c) - 97
 
-        matrix = [[c for c in line.strip()] for line in input]
+        matrix = [[c for c in line.strip()] for line in self.input]
 
         rows = len(matrix)
         cols = len(matrix[0])

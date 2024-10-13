@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import TextIO, override
+from typing import override
 
 from advent.common import SameComputationAdventDay, Variant
 
@@ -11,7 +11,7 @@ R = tuple[int, int]
 @dataclass
 class Day4(SameComputationAdventDay[list[tuple[R, R]]]):
     @override
-    def parse_input(self, input: TextIO) -> list[tuple[R, R]]:
+    def parse_input(self) -> list[tuple[R, R]]:
         def process(row: str):
             try:
                 match = REGEX.match(row)
@@ -21,7 +21,7 @@ class Day4(SameComputationAdventDay[list[tuple[R, R]]]):
             except AttributeError:
                 raise ValueError(f"Invalid row: {row}") from None
 
-        return [process(row.strip()) for row in input]
+        return [process(row.strip()) for row in self.input]
 
     @override
     def compute(self, var: Variant, input: list[tuple[R, R]]) -> int:

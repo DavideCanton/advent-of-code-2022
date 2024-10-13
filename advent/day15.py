@@ -6,7 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property, lru_cache
 from itertools import combinations
-from typing import ClassVar, TextIO, override
+from typing import ClassVar, override
 
 from advent.common import BaseAdventDay
 
@@ -28,6 +28,7 @@ class Range:
     def cells_inside(self) -> int:
         return self.to - self.from_ + 1
 
+    @override
     def __repr__(self) -> str:
         return f"<{self.from_}, {self.to}>"
 
@@ -56,8 +57,8 @@ class Sensor:
 @dataclass
 class Day15(BaseAdventDay[list[Sensor]]):
     @override
-    def parse_input(self, input: TextIO) -> list[Sensor]:
-        return [Sensor.parse(row) for row in input]
+    def parse_input(self) -> list[Sensor]:
+        return [Sensor.parse(row) for row in self.input]
 
     @override
     def _run_1(self, input: list[Sensor]) -> int:

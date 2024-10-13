@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import reduce
 from operator import itemgetter, mul
-from typing import TextIO, override
+from typing import override
 
 from advent.common import BaseAdventDay
 
@@ -15,8 +15,8 @@ type Grid = tuple[Matrix, Matrix]
 @dataclass
 class Day8(BaseAdventDay[Grid]):
     @override
-    def parse_input(self, input: TextIO) -> Grid:
-        by_row = [list(map(int, line.strip())) for line in input]
+    def parse_input(self) -> Grid:
+        by_row = [list(map(int, line.strip())) for line in self.input]
         by_col = list(map(list, zip(*by_row)))
         return by_row, by_col
 

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TextIO, override
+from typing import override
 
 from advent.common import BaseAdventDay
 
@@ -7,9 +7,9 @@ from advent.common import BaseAdventDay
 @dataclass
 class Day1(BaseAdventDay[list[int]]):
     @override
-    def parse_input(self, input: TextIO) -> list[int]:
+    def parse_input(self) -> list[int]:
         calories = [0]
-        for line in input:
+        for line in self.input:
             line = line.strip()
             if line:
                 calories[-1] += int(line)

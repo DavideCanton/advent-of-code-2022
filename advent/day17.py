@@ -1,10 +1,11 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from itertools import cycle
-from typing import TextIO
+from typing import override
 
-from advent.common import BaseAdventDay, override
+from advent.common import BaseAdventDay
 
 PRINT = False
 
@@ -23,31 +24,42 @@ class Piece:
         return len(self.form), len(self.form[0])
 
 
+F, T = False, True
+
 PIECES = [
-    Piece([[True, True, True, True]]),
-    Piece(
+    Piece(form)
+    for form in [
         [
-            [False, True, False],
-            [True, True, True],
-            [False, True, False],
-        ]
-    ),
-    Piece(
+            [T, T, T, T],
+        ],
         [
-            [False, False, True],
-            [False, False, True],
-            [True, True, True],
-        ]
-    ),
-    Piece([[True], [True], [True], [True]]),
-    Piece([[True, True], [True, True]]),
+            [F, T, F],
+            [T, T, T],
+            [F, T, F],
+        ],
+        [
+            [F, F, T],
+            [F, F, T],
+            [T, T, T],
+        ],
+        [
+            [T],
+            [T],
+            [T],
+            [T],
+        ],
+        [
+            [T, T],
+            [T, T],
+        ],
+    ]
 ]
 
 
 @dataclass
 class Day17(BaseAdventDay[list[Direction]]):
     @override
-    def parse_input(self, input: TextIO) -> list[Direction]:
+    def parse_input(self) -> list[Direction]:
         def _tr(c: str) -> Direction:
             match c:
                 case ">":
@@ -57,17 +69,24 @@ class Day17(BaseAdventDay[list[Direction]]):
                 case _:
                     raise ValueError("Invalid")
 
-        return [_tr(c) for line in input for c in line.strip()]
+        return [_tr(c) for line in self.input for c in line.strip()]
 
     @override
     def _run_1(self, input: list[Direction]):
+        return self._do(input, 2022)
+
+    @override
+    def _run_2(self, input: list[Direction]):
+        return self._do(input, 1000000000000)
+
+    def _do(self, input: list[Direction], rock_count: int) -> int:
         w = 7
         board = [[False] * w]
         last = -1
         rocks = cycle(PIECES)
         dirs = cycle(input)
 
-        for _ in range(2022):
+        for _ in range(rock_count):
             rock = next(rocks)
             x = 2
             y = last + 3 + rock.shape[0]
@@ -75,7 +94,7 @@ class Day17(BaseAdventDay[list[Direction]]):
             for _ in range(y + 1 - len(board)):
                 board.append([False] * w)
 
-            self._print(board, rock, x, y, "START")
+            _print(board, rock, x, y, "START")
             stop = False
 
             while not stop:
@@ -92,7 +111,7 @@ class Day17(BaseAdventDay[list[Direction]]):
                     ):
                         x += 1
 
-                self._print(board, rock, x, y, dir.name.upper())
+                _print(board, rock, x, y, dir.name.upper())
 
                 # if last row reached, stop
                 stop = y == rock.shape[0] - 1
@@ -108,7 +127,7 @@ class Day17(BaseAdventDay[list[Direction]]):
                 # if no stop is reached, move down
                 if not stop:
                     y -= 1
-                    self._print(board, rock, x, y, "DOWN")
+                    _print(board, rock, x, y, "DOWN")
 
             for yp, ll in enumerate(rock.form):
                 for xp, v in enumerate(ll):
@@ -116,36 +135,48 @@ class Day17(BaseAdventDay[list[Direction]]):
                         board[y - yp][x + xp] = True
 
             last = max(last, y)
-            self._print(board, rock, x, y, "FINISH")
+            _print(board, rock, x, y, "FINISH")
 
         return last + 1
 
-    @override
-    def _run_2(self, input: list[Direction]):
-        pass
 
-    def _print(
-        self,
-        board: list[list[bool]],
-        rock: Piece,
-        xp: int,
-        yp: int,
-        msg: str,
-    ):
-        if not PRINT:
-            return
-        print(msg)
-        ps = rock.shape
-        xr = range(xp, xp + ps[1])
-        yr = range(yp, yp - ps[0], -1)
+type Func[**P] = Callable[P, None]
 
-        for y in reversed(range(len(board))):
-            for x in range(7):
-                if board[y][x]:
-                    print("#", end="")
-                elif x in xr and y in yr and rock.form[yp - y][x - xp]:
-                    print("@", end="")
-                else:
-                    print(".", end="")
-            print()
+
+def bypass[**P](run: bool) -> Callable[[Func[P]], Func[P]]:
+    def inner(func: Func[P]) -> Func[P]:
+        if run:
+            return func
+        else:
+
+            def noop(*args: P.args, **kwargs: P.kwargs) -> None:
+                pass
+
+            return noop
+
+    return inner
+
+
+@bypass(PRINT)
+def _print(
+    board: list[list[bool]],
+    rock: Piece,
+    xp: int,
+    yp: int,
+    msg: str,
+):
+    print(msg)
+    ps = rock.shape
+    xr = range(xp, xp + ps[1])
+    yr = range(yp, yp - ps[0], -1)
+
+    for y in reversed(range(len(board))):
+        for x in range(7):
+            if board[y][x]:
+                print("#", end="")
+            elif x in xr and y in yr and rock.form[yp - y][x - xp]:
+                print("@", end="")
+            else:
+                print(".", end="")
         print()
+    print()

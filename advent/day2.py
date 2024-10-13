@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Literal, TextIO, override
+from typing import Literal, override
 
 from advent.common import SameComputationAdventDay, Variant
 
@@ -39,11 +39,13 @@ class Result1(Base):
     def __init__(self):
         self.yours_table: dict[YourChar, Play] = dict(zip("XYZ", P))  # type: ignore
 
+    @override
     def _compute_iy(self, io: Play, yours: YourChar) -> Play:
         return self.yours_table[yours]
 
 
 class Result2(Base):
+    @override
     def _compute_iy(self, io: Play, yours: YourChar) -> Play:
         match yours:
             case "Y":
@@ -61,11 +63,11 @@ Input = list[InputRow]
 @dataclass
 class Day2(SameComputationAdventDay[Input]):
     @override
-    def parse_input(self, input: TextIO) -> list[InputRow]:
+    def parse_input(self) -> list[InputRow]:
         ret: list[InputRow] = []
         o: OppChar
         y: YourChar
-        for r in input:
+        for r in self.input:
             o, y = r.strip().split()  # type: ignore
             ret.append((o, y))
         return ret

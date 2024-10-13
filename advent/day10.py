@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import Any, ClassVar, TextIO, override
+from typing import Any, ClassVar, override
 
 from advent.common import BaseAdventDay
 
@@ -69,8 +69,8 @@ class NoOp(Instr):
 @dataclass
 class Day10(BaseAdventDay[list[Instr]]):
     @override
-    def parse_input(self, input: TextIO) -> list[Instr]:
-        return [Instr.parse(line) for line in input]
+    def parse_input(self) -> list[Instr]:
+        return [Instr.parse(line) for line in self.input]
 
     @override
     def _run_1(self, input: list[Instr]) -> int:

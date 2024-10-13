@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum, auto
 from itertools import pairwise
-from typing import TextIO, override
+from typing import override
 
 from advent.common import BaseAdventDay
 
@@ -108,9 +108,9 @@ class Board:
 @dataclass
 class Day14(BaseAdventDay[Board]):
     @override
-    def parse_input(self, input: TextIO) -> Board:
+    def parse_input(self) -> Board:
         output: list[Path] = []
-        for line in input:
+        for line in self.input:
             parts = line.split("->")
             pos: list[Pos] = []
             for p in parts:

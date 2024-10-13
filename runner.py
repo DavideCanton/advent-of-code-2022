@@ -21,7 +21,9 @@ def _run(day: int, var: Literal[1, 2], file: Path | None = None) -> ResultProtoc
             file_path = input_folder / f"day{day}.txt"
         else:
             file_path = file
-        return cls(file_path).run(var)
+
+        with file_path.open() as f:
+            return cls(f).run(var)
 
 
 @click.command(

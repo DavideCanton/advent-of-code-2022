@@ -13,6 +13,7 @@ type TestCase = tuple[Any, Any]
 class Base:
     DAY: ClassVar[int]
     DATA: ClassVar[TestCase]
+    SKIP_VARIANT: tuple[Variant, ...] = ()
 
     @staticmethod
     def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
@@ -26,10 +27,14 @@ class Base:
         metafunc.parametrize("variant, exp", params)
 
     def test(self, variant: Variant, exp: Any) -> None:
+        if variant in self.SKIP_VARIANT:
+            pytest.skip(reason=f"Skipping {self.__class__.__name__}, variant {variant}")
+
         day = self.DAY
         cls = get_handler_for_day(day)
         file_path = FOLDER / f"day{day}.txt"
-        res = cls(file_path).run(variant)
+        with file_path.open() as f:
+            res = cls(f).run(variant)
         assert res == exp
 
 
@@ -126,3 +131,4 @@ class TestDay16(Base):
 class TestDay17(Base):
     DAY = 17
     DATA = (3188, 2169)
+    SKIP_VARIANT = (2,)

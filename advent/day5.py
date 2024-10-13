@@ -25,9 +25,9 @@ class Input:
 @dataclass
 class Day5(SameComputationAdventDay[Input]):
     @override
-    def parse_input(self, input: TextIO) -> Input:
-        crates = self._load_crates(input)
-        moves = self._load_moves(input)
+    def parse_input(self) -> Input:
+        crates = self._load_crates(self.input)
+        moves = self._load_moves(self.input)
 
         return Input(crates, moves)
 

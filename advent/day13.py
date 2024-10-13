@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import total_ordering
 from itertools import chain
-from typing import TextIO, override
+from typing import override
 
 from advent.common import BaseAdventDay
 
@@ -58,10 +58,10 @@ Input = list[tuple[Packet, Packet]]
 @dataclass
 class Day13(BaseAdventDay[Input]):
     @override
-    def parse_input(self, input: TextIO) -> Input:
+    def parse_input(self) -> Input:
         lists: list[Packet] = []
         output: Input = []
-        for line in input:
+        for line in self.input:
             line = line.strip()
             if not line:
                 continue

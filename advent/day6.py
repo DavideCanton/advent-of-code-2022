@@ -1,6 +1,6 @@
 from collections import deque
 from dataclasses import dataclass
-from typing import TextIO, override
+from typing import override
 
 from advent.common import SameComputationAdventDay, Variant
 
@@ -8,8 +8,8 @@ from advent.common import SameComputationAdventDay, Variant
 @dataclass
 class Day6(SameComputationAdventDay[str]):
     @override
-    def parse_input(self, input: TextIO) -> str:
-        return input.read()
+    def parse_input(self) -> str:
+        return self.input.read()
 
     @override
     def compute(self, var: Variant, input: str) -> int:
