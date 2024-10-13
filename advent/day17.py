@@ -17,16 +17,13 @@ class Direction(Enum):
     Right = auto()
 
 
-type Form = list[list[bool]]
-
-
 @dataclass
 class Piece:
-    form: Board
+    board: Board
 
     @cached_property
     def shape(self) -> tuple[int, int]:
-        return self.form.shape
+        return self.board.shape
 
 
 @dataclass
@@ -70,7 +67,7 @@ class Board:
 
         for xr in range(rock.shape[0]):
             for yr in range(rock.shape[1]):
-                if rock.form[xr, yr] and self[x - 1 + xr, yr + y]:
+                if rock.board[xr, yr] and self[x - 1 + xr, yr + y]:
                     return False
 
         return True
@@ -81,7 +78,7 @@ class Board:
 
         for xr in range(rock.shape[0]):
             for yr in range(rock.shape[1]):
-                if rock.form[xr, yr] and self[x + 1 + xr, yr + y]:
+                if rock.board[xr, yr] and self[x + 1 + xr, yr + y]:
                     return False
 
         return True
@@ -92,10 +89,17 @@ class Board:
 
         for xr in range(rock.shape[0]):
             for yr in range(rock.shape[1]):
-                if rock.form[xr, yr] and self[x + xr, yr - 1 + y]:
+                if rock.board[xr, yr] and self[x + xr, yr - 1 + y]:
                     return False
 
         return True
+
+    def apply(self, board: Board, x: int, y: int) -> None:
+        xs, ys = board.shape
+        for xr in range(xs):
+            for yr in range(ys):
+                if board[xr, yr]:
+                    self[x + xr, yr + y] = True
 
     @override
     def __str__(self) -> str:
@@ -104,7 +108,7 @@ class Board:
 
 F, T = False, True
 
-PIECES = [
+ROCKS = [
     Piece(Board.from_(form))
     for form in [
         [
@@ -151,17 +155,17 @@ class Day17(BaseAdventDay[list[Direction]]):
 
     @override
     def _run_1(self, input: list[Direction]):
-        return self._do(input, 2022)
+        return self._drop_rocks(input, 2022)
 
     @override
     def _run_2(self, input: list[Direction]):
-        return self._do(input, 1000000000000)
+        return self._drop_rocks(input, 1000000000000)
 
-    def _do(self, dir_input: list[Direction], rock_count: int) -> int:
+    def _drop_rocks(self, dir_patterns: list[Direction], rock_count: int) -> int:
         board = Board(7)
         last = 0
-        rocks = cycle(PIECES)
-        dirs = cycle(dir_input)
+        rocks = cycle(ROCKS)
+        dirs = cycle(dir_patterns)
 
         for _ in range(rock_count):
             rock = next(rocks)
@@ -174,12 +178,14 @@ class Day17(BaseAdventDay[list[Direction]]):
 
             while not stop:
                 dir = next(dirs)
-                if dir == Direction.Left:
-                    if board.can_move_left(rock, x, y):
+
+                match dir:
+                    case Direction.Left if board.can_move_left(rock, x, y):
                         x -= 1
-                elif dir == Direction.Right:
-                    if board.can_move_right(rock, x, y):
+                    case Direction.Right if board.can_move_right(rock, x, y):
                         x += 1
+                    case _:
+                        pass
 
                 _print(board, (rock, x, y), dir.name.upper())
 
@@ -195,10 +201,7 @@ class Day17(BaseAdventDay[list[Direction]]):
                     y -= 1
                     _print(board, (rock, x, y), "DOWN")
 
-            for yp, ll in enumerate(rock.form.board):
-                for xp, v in enumerate(ll):
-                    if v:
-                        board[x + xp, y + yp] = True
+            board.apply(rock.board, x, y)
 
             last = max(last, y + rock.shape[1])
             _print(board, None, f"FINISH (last={last})")
@@ -227,7 +230,7 @@ def _board_to_str(
         yr = range(yp, yp + ps[1])
 
         def ok(x: int, y: int) -> bool:
-            return x in xr and y in yr and rock.form[x - xp, y - yp]
+            return x in xr and y in yr and rock.board[x - xp, y - yp]
     else:
         has_rock = False
 
