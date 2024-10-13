@@ -5,12 +5,12 @@ import click
 import pdbp
 
 from advent import get_handler_for_day
-from advent.common import ResultProtocol
+from advent.common import ResultProtocol, Variant
 
 pdbp.enable()
 
 
-def _run(day: int, var: Literal[1, 2], file: Path | None = None) -> ResultProtocol:
+def _run(day: int, var: Variant, file: Path | None = None) -> ResultProtocol:
     try:
         cls = get_handler_for_day(day)
     except KeyError as e:

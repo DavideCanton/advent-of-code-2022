@@ -131,3 +131,8 @@ class TestDay16(Base):
 class TestDay17(Base):
     DAY = 17
     DATA = (3188, 1591977077342)
+
+
+class TestDay18(Base):
+    DAY = 18
+    DATA = (3494, None)
