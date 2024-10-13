@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from functools import cached_property
 from itertools import cycle
-from typing import Self, overload, override
+from typing import Self, override
 
 from advent.common import BaseAdventDay
 
@@ -24,18 +23,6 @@ type Form = list[list[bool]]
 @dataclass
 class Piece:
     form: Board
-
-    @cached_property
-    def left_border(self) -> Form:
-        return self.form[0, :]
-
-    @cached_property
-    def right_border(self) -> Form:
-        return self.form[-1, :]
-
-    @cached_property
-    def bottom_border(self) -> Form:
-        return self.form[:, 0]
 
     @cached_property
     def shape(self) -> tuple[int, int]:
@@ -57,27 +44,9 @@ class Board:
     def shape(self) -> tuple[int, int]:
         return len(self.board[0]), len(self.board)
 
-    @overload
-    def __getitem__(self, item: tuple[int, int]) -> bool: ...
-    @overload
-    def __getitem__(self, item: tuple[slice, int | slice] | tuple[int | slice, slice]) -> Form: ...
-
-    def __getitem__(self, item: tuple[int | slice, int | slice]) -> Form | bool:
+    def __getitem__(self, item: tuple[int, int]) -> bool:
         xr, yr = item
-
-        if isinstance(xr, int) and isinstance(yr, int):
-            return self.board[yr][xr]
-
-        xr = slice_to_range(xr, self.cols)
-        yr = slice_to_range(yr, len(self))
-
-        ret: Form = []
-        for y in yr:
-            ret.append(r := [])
-            for x in xr:
-                r.append(self.board[y][x])
-
-        return ret
+        return self.board[yr][xr]
 
     def __setitem__(self, key: tuple[int, int], value: bool) -> None:
         x, y = key
@@ -99,30 +68,34 @@ class Board:
         if x == 0:
             return False
 
-        lb = rock.left_border
-        col = self[x - 1, y : y + rock.shape[1]]
+        for xr in range(rock.shape[0]):
+            for yr in range(rock.shape[1]):
+                if rock.form[xr, yr] and self[x - 1 + xr, yr + y]:
+                    return False
 
-        return not any(v[0] and b[0] for v, b in zip(lb, col))
+        return True
 
     def can_move_right(self, rock: Piece, x: int, y: int) -> bool:
-        cx = x + rock.shape[0]
-        if cx == self.cols:
+        if x == self.cols - rock.shape[0]:
             return False
 
-        rb = rock.right_border
-        col = self[cx, y : y + rock.shape[1]]
+        for xr in range(rock.shape[0]):
+            for yr in range(rock.shape[1]):
+                if rock.form[xr, yr] and self[x + 1 + xr, yr + y]:
+                    return False
 
-        return not any(v[0] and b[0] for v, b in zip(rb, col))
+        return True
 
     def can_move_down(self, rock: Piece, x: int, y: int) -> bool:
-        bb = rock.bottom_border
-
         if y == 0:
             return False
 
-        row = self[x : x + rock.shape[0], y - 1]
+        for xr in range(rock.shape[0]):
+            for yr in range(rock.shape[1]):
+                if rock.form[xr, yr] and self[x + xr, yr - 1 + y]:
+                    return False
 
-        return not any(v and b for v, b in zip(bb[0], row[0]))
+        return True
 
     @override
     def __str__(self) -> str:
@@ -159,13 +132,6 @@ PIECES = [
         ],
     ]
 ]
-
-
-def slice_to_range(s: slice | int, limit: int) -> Iterable[int]:
-    if isinstance(s, int):
-        return range(s, s + 1)
-
-    return list(range(0, limit))[s]
 
 
 @dataclass
@@ -235,7 +201,7 @@ class Day17(BaseAdventDay[list[Direction]]):
                         board[x + xp, y + yp] = True
 
             last = max(last, y + rock.shape[1])
-            _print(board, (rock, x, y), f"FINISH (last={last})")
+            _print(board, None, f"FINISH (last={last})")
             if WAIT:
                 input()
 
@@ -274,14 +240,22 @@ def _board_to_str(
         row = ["│"]
         empty = True
         for x in range(board.cols):
-            if board[x, y]:
+            sharp = board[x, y]
+            at = has_rock and ok(x, y)
+            try:
+                assert {sharp, at} != {True}
+            except AssertionError:
+                raise
+
+            if sharp:
                 empty = False
                 row.append("#")
-            elif has_rock and ok(x, y):
+            elif at:
                 empty = False
                 row.append("@")
             else:
                 row.append(".")
+
         row.append("│")
 
         if not empty:
