@@ -1,33 +1,138 @@
-from collections.abc import Callable
-from dataclasses import dataclass
-from enum import Enum
+from __future__ import annotations
+
+from collections.abc import Iterable
+from dataclasses import dataclass, field
+from enum import Enum, auto
 from functools import cached_property
 from itertools import cycle
-from typing import override
+from typing import Self, overload, override
 
 from advent.common import BaseAdventDay
 
 PRINT = False
+WAIT = False
 
 
 class Direction(Enum):
-    Left = 1
-    Right = 2
+    Left = auto()
+    Right = auto()
+
+
+type Form = list[list[bool]]
 
 
 @dataclass
 class Piece:
-    form: list[list[bool]]
+    form: Board
+
+    @cached_property
+    def left_border(self) -> Form:
+        return self.form[0, :]
+
+    @cached_property
+    def right_border(self) -> Form:
+        return self.form[-1, :]
+
+    @cached_property
+    def bottom_border(self) -> Form:
+        return self.form[:, 0]
 
     @cached_property
     def shape(self) -> tuple[int, int]:
-        return len(self.form), len(self.form[0])
+        return self.form.shape
+
+
+@dataclass
+class Board:
+    cols: int
+    board: list[list[bool]] = field(init=False, default_factory=list)
+
+    @classmethod
+    def from_(cls, board: list[list[bool]]) -> Self:
+        b = cls(len(board[0]))
+        b.board = board
+        return b
+
+    @cached_property
+    def shape(self) -> tuple[int, int]:
+        return len(self.board[0]), len(self.board)
+
+    @overload
+    def __getitem__(self, item: tuple[int, int]) -> bool: ...
+    @overload
+    def __getitem__(self, item: tuple[slice, int | slice] | tuple[int | slice, slice]) -> Form: ...
+
+    def __getitem__(self, item: tuple[int | slice, int | slice]) -> Form | bool:
+        xr, yr = item
+
+        if isinstance(xr, int) and isinstance(yr, int):
+            return self.board[yr][xr]
+
+        xr = slice_to_range(xr, self.cols)
+        yr = slice_to_range(yr, len(self))
+
+        ret: Form = []
+        for y in yr:
+            ret.append(r := [])
+            for x in xr:
+                r.append(self.board[y][x])
+
+        return ret
+
+    def __setitem__(self, key: tuple[int, int], value: bool) -> None:
+        x, y = key
+        self.board[y][x] = value
+
+    def __len__(self) -> int:
+        return len(self.board)
+
+    def append_row_top(self, n: int = 1) -> None:
+        for _ in range(n):
+            self.board.append([False] * self.cols)
+
+    def ensure_rows(self, n: int) -> None:
+        to_add = n - len(self.board)
+        if to_add > 0:
+            self.append_row_top(to_add)
+
+    def can_move_left(self, rock: Piece, x: int, y: int) -> bool:
+        if x == 0:
+            return False
+
+        lb = rock.left_border
+        col = self[x - 1, y : y + rock.shape[1]]
+
+        return not any(v[0] and b[0] for v, b in zip(lb, col))
+
+    def can_move_right(self, rock: Piece, x: int, y: int) -> bool:
+        cx = x + rock.shape[0]
+        if cx == self.cols:
+            return False
+
+        rb = rock.right_border
+        col = self[cx, y : y + rock.shape[1]]
+
+        return not any(v[0] and b[0] for v, b in zip(rb, col))
+
+    def can_move_down(self, rock: Piece, x: int, y: int) -> bool:
+        bb = rock.bottom_border
+
+        if y == 0:
+            return False
+
+        row = self[x : x + rock.shape[0], y - 1]
+
+        return not any(v and b for v, b in zip(bb[0], row[0]))
+
+    @override
+    def __str__(self) -> str:
+        return _board_to_str(self, None, trim_empty=False)
 
 
 F, T = False, True
 
 PIECES = [
-    Piece(form)
+    Piece(Board.from_(form))
     for form in [
         [
             [T, T, T, T],
@@ -38,9 +143,9 @@ PIECES = [
             [F, T, F],
         ],
         [
-            [F, F, T],
-            [F, F, T],
             [T, T, T],
+            [F, F, T],
+            [F, F, T],
         ],
         [
             [T],
@@ -54,6 +159,13 @@ PIECES = [
         ],
     ]
 ]
+
+
+def slice_to_range(s: slice | int, limit: int) -> Iterable[int]:
+    if isinstance(s, int):
+        return range(s, s + 1)
+
+    return list(range(0, limit))[s]
 
 
 @dataclass
@@ -79,104 +191,105 @@ class Day17(BaseAdventDay[list[Direction]]):
     def _run_2(self, input: list[Direction]):
         return self._do(input, 1000000000000)
 
-    def _do(self, input: list[Direction], rock_count: int) -> int:
-        w = 7
-        board = [[False] * w]
-        last = -1
+    def _do(self, dir_input: list[Direction], rock_count: int) -> int:
+        board = Board(7)
+        last = 0
         rocks = cycle(PIECES)
-        dirs = cycle(input)
+        dirs = cycle(dir_input)
 
         for _ in range(rock_count):
             rock = next(rocks)
             x = 2
-            y = last + 3 + rock.shape[0]
+            y = last + 3
+            board.ensure_rows(y + rock.shape[1])
 
-            for _ in range(y + 1 - len(board)):
-                board.append([False] * w)
-
-            _print(board, rock, x, y, "START")
+            _print(board, (rock, x, y), "START")
             stop = False
 
             while not stop:
                 dir = next(dirs)
-                if dir == Direction.Left and x > 0:
-                    if not any(
-                        v and board[y - yi][x - 1] for yi, v in enumerate(r[0] for r in rock.form)
-                    ):
+                if dir == Direction.Left:
+                    if board.can_move_left(rock, x, y):
                         x -= 1
-                elif dir == Direction.Right and x + rock.shape[1] < w:
-                    if not any(
-                        v and board[y - yi][x + rock.shape[1]]
-                        for yi, v in enumerate(r[-1] for r in rock.form)
-                    ):
+                elif dir == Direction.Right:
+                    if board.can_move_right(rock, x, y):
                         x += 1
 
-                _print(board, rock, x, y, dir.name.upper())
+                _print(board, (rock, x, y), dir.name.upper())
 
-                # if last row reached, stop
-                stop = y == rock.shape[0] - 1
+                stop = False
 
-                # else check if the rock collides down
-                if not stop:
-                    ys = y - rock.shape[0]
-                    for xi, r in enumerate(rock.form[-1]):
-                        if r and board[ys][x + xi]:
-                            stop = True
-                            break
+                # check if the rock collides down (y==0 checked by can_move_down)
+                if not board.can_move_down(rock, x, y):
+                    stop = True
+                    break
 
                 # if no stop is reached, move down
                 if not stop:
                     y -= 1
-                    _print(board, rock, x, y, "DOWN")
+                    _print(board, (rock, x, y), "DOWN")
 
-            for yp, ll in enumerate(rock.form):
+            for yp, ll in enumerate(rock.form.board):
                 for xp, v in enumerate(ll):
                     if v:
-                        board[y - yp][x + xp] = True
+                        board[x + xp, y + yp] = True
 
-            last = max(last, y)
-            _print(board, rock, x, y, "FINISH")
+            last = max(last, y + rock.shape[1])
+            _print(board, (rock, x, y), f"FINISH (last={last})")
+            if WAIT:
+                input()
 
-        return last + 1
-
-
-type Func[**P] = Callable[P, None]
-
-
-def bypass[**P](run: bool) -> Callable[[Func[P]], Func[P]]:
-    def inner(func: Func[P]) -> Func[P]:
-        if run:
-            return func
-        else:
-
-            def noop(*args: P.args, **kwargs: P.kwargs) -> None:
-                pass
-
-            return noop
-
-    return inner
+        return last
 
 
-@bypass(PRINT)
-def _print(
-    board: list[list[bool]],
-    rock: Piece,
-    xp: int,
-    yp: int,
-    msg: str,
-):
+def _print(board: Board, rockT: tuple[Piece, int, int] | None, msg: str):
+    if not PRINT:
+        return
+
     print(msg)
-    ps = rock.shape
-    xr = range(xp, xp + ps[1])
-    yr = range(yp, yp - ps[0], -1)
+    print(_board_to_str(board, rockT))
 
-    for y in reversed(range(len(board))):
-        for x in range(7):
-            if board[y][x]:
-                print("#", end="")
-            elif x in xr and y in yr and rock.form[yp - y][x - xp]:
-                print("@", end="")
+
+def _board_to_str(
+    board: Board, rockT: tuple[Piece, int, int] | None, trim_empty: bool = True
+) -> str:
+    if rockT is not None:
+        has_rock = True
+        rock, xp, yp = rockT
+        ps = rock.shape
+        xr = range(xp, xp + ps[0])
+        yr = range(yp, yp + ps[1])
+
+        def ok(x: int, y: int) -> bool:
+            return x in xr and y in yr and rock.form[x - xp, y - yp]
+    else:
+        has_rock = False
+
+        def ok(x: int, y: int) -> bool:
+            return False
+
+    ret: list[str] = []
+
+    for y in range(len(board) - 1, -1, -1):
+        row = ["│"]
+        empty = True
+        for x in range(board.cols):
+            if board[x, y]:
+                empty = False
+                row.append("#")
+            elif has_rock and ok(x, y):
+                empty = False
+                row.append("@")
             else:
-                print(".", end="")
-        print()
-    print()
+                row.append(".")
+        row.append("│")
+
+        if not empty:
+            trim_empty = False
+
+        if not trim_empty:
+            ret.append("".join(row))
+
+    s = "─" * board.cols
+    ret.append(f"└{s}┘")
+    return "\n".join(ret)
