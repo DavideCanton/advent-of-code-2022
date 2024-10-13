@@ -3,13 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from functools import cached_property
-from itertools import cycle
+from itertools import count, cycle
 from typing import Self, override
 
 from advent.common import BaseAdventDay
 
 PRINT = False
-WAIT = False
 
 
 class Direction(Enum):
@@ -17,8 +16,15 @@ class Direction(Enum):
     Right = auto()
 
 
-@dataclass
+@dataclass(frozen=True)
+class Jet:
+    index: int
+    direction: Direction
+
+
+@dataclass(frozen=True)
 class Piece:
+    index: int
     board: Board
 
     @cached_property
@@ -109,77 +115,86 @@ class Board:
 F, T = False, True
 
 ROCKS = [
-    Piece(Board.from_(form))
-    for form in [
+    Piece(i, Board.from_(form))
+    for i, form in enumerate(
         [
-            [T, T, T, T],
-        ],
-        [
-            [F, T, F],
-            [T, T, T],
-            [F, T, F],
-        ],
-        [
-            [T, T, T],
-            [F, F, T],
-            [F, F, T],
-        ],
-        [
-            [T],
-            [T],
-            [T],
-            [T],
-        ],
-        [
-            [T, T],
-            [T, T],
-        ],
-    ]
+            [
+                [T, T, T, T],
+            ],
+            [
+                [F, T, F],
+                [T, T, T],
+                [F, T, F],
+            ],
+            [
+                [T, T, T],
+                [F, F, T],
+                [F, F, T],
+            ],
+            [
+                [T],
+                [T],
+                [T],
+                [T],
+            ],
+            [
+                [T, T],
+                [T, T],
+            ],
+        ]
+    )
 ]
 
 
 @dataclass
-class Day17(BaseAdventDay[list[Direction]]):
+class Day17(BaseAdventDay[list[Jet]]):
     @override
-    def parse_input(self) -> list[Direction]:
-        def _tr(c: str) -> Direction:
+    def parse_input(self) -> list[Jet]:
+        cnt = count()
+
+        def _tr(c: str) -> Jet:
+            i = next(cnt)
             match c:
                 case ">":
-                    return Direction.Right
+                    return Jet(i, Direction.Right)
                 case "<":
-                    return Direction.Left
+                    return Jet(i, Direction.Left)
                 case _:
                     raise ValueError("Invalid")
 
         return [_tr(c) for line in self.input for c in line.strip()]
 
     @override
-    def _run_1(self, input: list[Direction]):
+    def _run_1(self, input: list[Jet]):
         return self._drop_rocks(input, 2022)
 
     @override
-    def _run_2(self, input: list[Direction]):
+    def _run_2(self, input: list[Jet]):
         return self._drop_rocks(input, 1000000000000)
 
-    def _drop_rocks(self, dir_patterns: list[Direction], rock_count: int) -> int:
+    def _drop_rocks(self, jet_list: list[Jet], rock_count: int) -> int:
         board = Board(7)
-        last = 0
+        height = 0
+        jets = cycle(jet_list)
         rocks = cycle(ROCKS)
-        dirs = cycle(dir_patterns)
 
-        for _ in range(rock_count):
+        states: dict[tuple[int, int, int], tuple[int, int]] = {}
+        jet = None
+
+        for rock_num in range(rock_count):
             rock = next(rocks)
+
             x = 2
-            y = last + 3
+            y = height + 3
             board.ensure_rows(y + rock.shape[1])
 
             _print(board, (rock, x, y), "START")
             stop = False
 
             while not stop:
-                dir = next(dirs)
+                jet = next(jets)
 
-                match dir:
+                match jet.direction:
                     case Direction.Left if board.can_move_left(rock, x, y):
                         x -= 1
                     case Direction.Right if board.can_move_right(rock, x, y):
@@ -187,28 +202,33 @@ class Day17(BaseAdventDay[list[Direction]]):
                     case _:
                         pass
 
-                _print(board, (rock, x, y), dir.name.upper())
+                _print(board, (rock, x, y), jet.direction.name.upper())
 
-                stop = False
-
-                # check if the rock collides down (y==0 checked by can_move_down)
-                if not board.can_move_down(rock, x, y):
-                    stop = True
-                    break
-
-                # if no stop is reached, move down
-                if not stop:
+                # check if the rock collides down
+                if board.can_move_down(rock, x, y):
                     y -= 1
                     _print(board, (rock, x, y), "DOWN")
+                else:
+                    stop = True
 
             board.apply(rock.board, x, y)
 
-            last = max(last, y + rock.shape[1])
-            _print(board, None, f"FINISH (last={last})")
-            if WAIT:
-                input()
+            height = max(height, y + rock.shape[1])
+            _print(board, None, f"FINISH (height={height})")
 
-        return last
+            assert jet is not None
+            state = (jet.index, rock.index, x)
+            if prev := states.get(state):
+                rocks_in_cycle = rock_num - prev[0]
+                height_delta = height - prev[1]
+                rock_remaining = rock_count - rock_num - 1
+                cycles, remainder = divmod(rock_remaining, rocks_in_cycle)
+                if remainder == 0:
+                    return height_delta * cycles + height
+            else:
+                states[state] = (rock_num, height)
+
+        return height
 
 
 def _print(board: Board, rockT: tuple[Piece, int, int] | None, msg: str):

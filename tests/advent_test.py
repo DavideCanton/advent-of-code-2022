@@ -130,5 +130,4 @@ class TestDay16(Base):
 
 class TestDay17(Base):
     DAY = 17
-    DATA = (3188, 2169)
-    SKIP_VARIANT = (2,)
+    DATA = (3188, 1591977077342)
