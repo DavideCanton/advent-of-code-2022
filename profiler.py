@@ -1,12 +1,13 @@
+# type: ignore
 from line_profiler import LineProfiler
 
-from advent import common, get_handler_for_day
+from advent import get_handler_for_day
 from runner import _run
 
 profile = LineProfiler()
 
 day = 16
-variant: common.Variant = 1
+variant = 1
 
 fns = []
 handler = get_handler_for_day(day)

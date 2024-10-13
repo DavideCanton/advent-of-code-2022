@@ -120,6 +120,7 @@ class Day17(BaseAdventDay[list[Direction]]):
 
         return last + 1
 
+    @override
     def _run_2(self, input: list[Direction]):
         pass
 

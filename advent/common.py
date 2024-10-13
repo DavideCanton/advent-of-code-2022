@@ -5,6 +5,7 @@ from typing import Literal, Protocol, TextIO, override
 
 
 class ResultProtocol(Protocol):
+    @override
     def __str__(self) -> str: ...
 
 

@@ -26,9 +26,11 @@ class File(Entry):
     _size: int
 
     @property
+    @override
     def size(self) -> int:
         return self._size
 
+    @override
     def list_dirs(self) -> Iterable[Dir]:
         yield from ()
 
@@ -63,6 +65,7 @@ class Dir(Entry):
     def size(self) -> int:  # pyright: ignore [reportIncompatibleMethodOverride]
         return sum(e.size for e in self.children.values())
 
+    @override
     def list_dirs(self) -> Iterable[Dir]:
         yield self
         for e in self.children.values():

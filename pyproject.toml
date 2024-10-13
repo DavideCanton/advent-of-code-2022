@@ -7,6 +7,10 @@ select = ["E", "F", "B", "I"]
 ignore = ["B905"]
 
 [tool.pyright]
-reportMissingImports = true
+reportMissingImports = "error"
 reportMissingTypeStubs = false
+reportImplicitOverride = "error"
+reportUnusedImport = "error"
+reportWildcardImportFromLibrary = "error"
+typeCheckingMode = "strict"
 pythonVersion = "3.13"

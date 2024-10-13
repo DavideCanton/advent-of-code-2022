@@ -40,11 +40,13 @@ class AddX(Instr):
     amount: int
 
     @classmethod
+    @override
     def _parse(  # pyright: ignore[reportIncompatibleMethodOverride]
         cls, amount: int
     ) -> AddX:
         return AddX(int(amount))
 
+    @override
     def apply(self, x: int) -> int:
         return x + self.amount
 
@@ -55,9 +57,11 @@ class NoOp(Instr):
     NAME = "noop"
 
     @classmethod
-    def _parse(cls) -> NoOp:  # pyright: ignore[reportIncompatibleMethodOverride]
+    @override
+    def _parse(cls, *args: Any) -> NoOp:
         return NoOp()
 
+    @override
     def apply(self, x: int) -> int:
         return x
 
