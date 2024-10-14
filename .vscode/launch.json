@@ -6,7 +6,7 @@
       "type": "debugpy",
       "request": "launch",
       "program": "runner.py",
-      "args": ["17", "1"],
+      "args": ["19", "1"],
       "console": "integratedTerminal",
       "justMyCode": true
     },
