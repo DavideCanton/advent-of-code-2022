@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass
 from typing import override
 
@@ -46,4 +47,34 @@ class Day18(BaseAdventDay[list[Cube]]):
 
     @override
     def _run_2(self, input: list[Cube]):
-        pass
+        cubes = set(input)
+        mx = max(c.x for c in input) + 1
+        my = max(c.y for c in input) + 1
+        mz = max(c.z for c in input) + 1
+
+        start = Cube(-1, -1, -1)
+
+        frontier = deque([start])
+        visited = set[Cube]()
+        sides = 0
+
+        while frontier:
+            c = frontier.popleft()
+            if c in visited or (c.x > mx or c.y > my or c.z > mz):
+                continue
+
+            visited.add(c)
+
+            adjs = set(c.adjacents())
+            for adj in adjs:
+                if adj in cubes:
+                    sides += 1
+
+                if (
+                    adj not in cubes
+                    and adj not in visited
+                    and all(q >= -1 for q in (adj.x, adj.y, adj.z))
+                ):
+                    frontier.append(adj)
+
+        return sides
